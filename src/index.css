@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+/* Global styles for the Student Welfare Fund Admin Portal */
+
+/* Tailwind v4 design tokens */
+@theme {
+  /* Primary palette */
+  --color-primary-50: #F3F6FF;
+  --color-primary-100: #E6EBFF;
+  --color-primary-200: #CCD7FF;
+  --color-primary-300: #B3C3FF;
+  --color-primary-400: #99AEFF;
+  --color-primary-500: #8099FF;
+  --color-primary-600: #7C8CF8;
+  --color-primary-700: #6A78E6;
+  --color-primary-800: #5A69CC;
+  --color-primary-900: #4A59B3;
+
+  /* Soft accent palettes */
+  --color-roseSoft-100: #FDE7EF;
+  --color-roseSoft-200: #FCCFE0;
+  --color-roseSoft-300: #FAB8D2;
+
+  --color-indigoSoft-100: #E9ECFF;
+  --color-indigoSoft-200: #D6DBFF;
+  --color-indigoSoft-300: #C3CAFF;
+
+  --color-skySoft-100: #E9F7FF;
+  --color-skySoft-200: #D4F0FF;
+  --color-skySoft-300: #BFE9FF;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Simple fade-in animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 220ms ease-out both;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="rtl"] .MuiDrawer-paper {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiListItemButton-root {
+  text-align: right;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Dark mode scrollbar */
+[data-mui-color-scheme="dark"] ::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+[data-mui-color-scheme="dark"] ::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+[data-mui-color-scheme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
