@@ -43,8 +43,12 @@
     "dashboard": "لوحة التحكم",
     "categories": "الفئات",
     "programs": "البرامج",
+    "campaigns": "الحملات",
     "applications": "الطلبات",
     "donations": "التبرعات",
+    "users": "المستخدمون",
+    "roles_permissions": "الأدوار والصلاحيات",
+    "audit_logs": "سجل العمليات",
     "settings": "الإعدادات"
   },
   "dashboard": {

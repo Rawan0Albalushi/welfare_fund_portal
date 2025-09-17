@@ -11,6 +11,13 @@ export const useDonations = (params?: QueryParams) => {
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchInterval: false,
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 errors
+      if (error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 1;
+    },
   });
 };
 

@@ -1,3 +1,21 @@
+## Environment (.env)
+
+Create a `.env` file in the project root:
+
+```
+VITE_API_URL=http://192.168.100.130:8000/api/v1/admin
+VITE_APP_NAME=Student Welfare Fund Admin Portal
+```
+
+With this base URL, use relative endpoints in services:
+- Auth: `/auth/login`, `/auth/logout`, `/auth/profile`
+- Programs: `/programs`
+- Categories: `/categories`
+- Campaigns: `/campaigns`
+- Donations: `/donations`
+- Applications: `/applications` and `/applications/{id}/status`
+- Users: `/users` and `/users/{id}/role`
+
 # Student Welfare Fund Admin Portal
 
 A modern React admin portal for managing the Student Welfare Fund system, built with Vite, TypeScript, Material-UI, and React Query.

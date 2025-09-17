@@ -5,6 +5,7 @@ import { AppThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Categories } from './pages/Categories';
@@ -12,6 +13,10 @@ import { Programs } from './pages/Programs';
 import { Settings } from './pages/Settings';
 import { Donations } from './pages/Donations';
 import { Applications } from './pages/Applications';
+import { Campaigns } from './pages/Campaigns';
+import { Users } from './pages/Users';
+import { RolesPermissions } from './pages/RolesPermissions';
+import { AuditLogs } from './pages/AuditLogs';
 import './i18n';
 
 // Create a client
@@ -42,40 +47,48 @@ queryClient.getQueryCache().subscribe((event) => {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppThemeProvider>
-        <LanguageProvider>
-          <Router>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={<Login />} />
-              
-              {/* Protected Routes */}
-              <Route
-                path="/*"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout>
-                      <Routes>
-                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/categories" element={<Categories />} />
-                        <Route path="/programs" element={<Programs />} />
-                        <Route path="/applications" element={<Applications />} />
-                        <Route path="/donations" element={<Donations />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                      </Routes>
-                    </AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </Router>
-        </LanguageProvider>
-      </AppThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AppThemeProvider>
+          <LanguageProvider>
+            <Router>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/login" element={<Login />} />
+                
+                {/* Protected Routes */}
+                <Route
+                  path="/*"
+                  element={
+                    <ProtectedRoute>
+                      <ErrorBoundary>
+                        <AppLayout>
+                          <Routes>
+                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/categories" element={<Categories />} />
+                            <Route path="/programs" element={<Programs />} />
+                            <Route path="/campaigns" element={<Campaigns />} />
+                            <Route path="/applications" element={<Applications />} />
+                            <Route path="/donations" element={<Donations />} />
+                            <Route path="/users" element={<Users />} />
+                            <Route path="/roles-permissions" element={<RolesPermissions />} />
+                            <Route path="/audit-logs" element={<AuditLogs />} />
+                            <Route path="/settings" element={<Settings />} />
+                            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                          </Routes>
+                        </AppLayout>
+                      </ErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </Router>
+          </LanguageProvider>
+        </AppThemeProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

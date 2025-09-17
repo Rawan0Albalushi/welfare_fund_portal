@@ -25,8 +25,18 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [langOpen, setLangOpen] = React.useState(false);
 
   const handleLogout = async () => {
-    await logout();
-    setProfileOpen(false);
+    try {
+      await logout();
+    } catch (e) {
+      console.error('❌ [Header] Logout failed, forcing client-side logout redirect.', e);
+      // Ensure client-side cleanup on failure as well
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+    } finally {
+      setProfileOpen(false);
+      // Redirect to login after logout
+      window.location.href = '/login';
+    }
   };
 
   const handleLanguageChange = (newLanguage: 'en' | 'ar') => {

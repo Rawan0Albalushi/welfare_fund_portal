@@ -18,6 +18,7 @@ export const Applications: React.FC = () => {
   
   const [statusDialog, setStatusDialog] = useState<StudentRegistration | null>(null);
   const [newStatus, setNewStatus] = useState<string>('');
+  const [viewDialog, setViewDialog] = useState<StudentRegistration | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -53,7 +54,7 @@ export const Applications: React.FC = () => {
       label: t('applications.student_name'),
       minWidth: 150,
       sortable: true,
-      render: (_, row) => row.personal_json.name,
+      render: (_, row) => row.personal_json?.name || row.student_name || 'N/A',
     },
     {
       id: 'program.title',
@@ -125,19 +126,19 @@ export const Applications: React.FC = () => {
       {/* Summary Cards */}
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="px-3 py-2 rounded-lg bg-amber-500 text-white min-w-[150px]">
-          <div className="text-lg font-semibold">{applicationsData?.data.filter(app => app.status === 'pending').length || 0}</div>
+          <div className="text-lg font-semibold">{(applicationsData?.data ?? []).filter(app => app.status === 'pending').length}</div>
           <div className="text-xs opacity-90">Pending Applications</div>
         </div>
         <div className="px-3 py-2 rounded-lg bg-sky-500 text-white min-w-[150px]">
-          <div className="text-lg font-semibold">{applicationsData?.data.filter(app => app.status === 'under_review').length || 0}</div>
+          <div className="text-lg font-semibold">{(applicationsData?.data ?? []).filter(app => app.status === 'under_review').length}</div>
           <div className="text-xs opacity-90">Under Review</div>
         </div>
         <div className="px-3 py-2 rounded-lg bg-emerald-600 text-white min-w-[150px]">
-          <div className="text-lg font-semibold">{applicationsData?.data.filter(app => app.status === 'approved').length || 0}</div>
+          <div className="text-lg font-semibold">{(applicationsData?.data ?? []).filter(app => app.status === 'approved').length}</div>
           <div className="text-xs opacity-90">Approved</div>
         </div>
         <div className="px-3 py-2 rounded-lg bg-rose-600 text-white min-w-[150px]">
-          <div className="text-lg font-semibold">{applicationsData?.data.filter(app => app.status === 'rejected').length || 0}</div>
+          <div className="text-lg font-semibold">{(applicationsData?.data ?? []).filter(app => app.status === 'rejected').length}</div>
           <div className="text-xs opacity-90">Rejected</div>
         </div>
       </div>
@@ -170,7 +171,7 @@ export const Applications: React.FC = () => {
       </div>
 
       {/* Data Table */}
-      {applicationsData?.data.length === 0 ? (
+      {(applicationsData?.data ?? []).length === 0 ? (
         <EmptyState
           title={t('applications.no_applications')}
           description="No applications found matching your criteria"
@@ -178,8 +179,8 @@ export const Applications: React.FC = () => {
       ) : (
         <DataTable
           columns={columns}
-          data={applicationsData?.data || []}
-          totalCount={applicationsData?.total || 0}
+          data={applicationsData?.data ?? []}
+          totalCount={applicationsData?.total ?? (applicationsData?.data ?? []).length}
           page={page}
           rowsPerPage={rowsPerPage}
           onPageChange={setPage}
@@ -187,10 +188,7 @@ export const Applications: React.FC = () => {
           onSort={handleSort}
           sortBy={sortBy}
           sortDirection={sortOrder}
-          onView={(application) => {
-            // TODO: Implement view application details
-            console.log('View application:', application);
-          }}
+          onView={(application) => setViewDialog(application)}
           onEdit={(application) => handleOpenStatusDialog(application)}
         />
       )}
@@ -203,7 +201,7 @@ export const Applications: React.FC = () => {
             <h3 className="text-lg font-semibold mb-2">{t('applications.update_status')}</h3>
             <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
               <div>Application ID: {statusDialog.registration_id}</div>
-              <div>Student: {statusDialog.personal_json.name}</div>
+              <div>Student: {statusDialog.personal_json?.name || statusDialog.student_name || 'N/A'}</div>
               <div>Program: {statusDialog.program?.title || 'N/A'}</div>
             </div>
             <div className="mt-3">
@@ -230,6 +228,51 @@ export const Applications: React.FC = () => {
               >
                 {updateStatusMutation.isPending ? t('common.loading') : t('common.save')}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Details Modal */}
+      {viewDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setViewDialog(null)} />
+          <div className="relative w-full max-w-2xl rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card p-4">
+            <h3 className="text-lg font-semibold mb-3">Application Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <div className="text-gray-500 mb-1">Student</div>
+                <div className="font-medium">{viewDialog.personal_json?.name}</div>
+              </div>
+              <div>
+                <div className="text-gray-500 mb-1">Program</div>
+                <div className="font-medium">{viewDialog.program?.title || 'N/A'}</div>
+              </div>
+              <div>
+                <div className="text-gray-500 mb-1">Status</div>
+                <div className="font-medium">{viewDialog.status}</div>
+              </div>
+              <div>
+                <div className="text-gray-500 mb-1">Submitted</div>
+                <div className="font-medium">{new Date(viewDialog.created_at).toLocaleString()}</div>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-gray-500 mb-1">Personal Info</div>
+              <pre className="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded-md overflow-auto max-h-64">{JSON.stringify(viewDialog.personal_json, null, 2)}</pre>
+            </div>
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <div className="text-gray-500 mb-1">Academic</div>
+                <pre className="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded-md overflow-auto max-h-64">{JSON.stringify(viewDialog.academic_json, null, 2)}</pre>
+              </div>
+              <div>
+                <div className="text-gray-500 mb-1">Financial</div>
+                <pre className="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded-md overflow-auto max-h-64">{JSON.stringify(viewDialog.financial_json, null, 2)}</pre>
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button onClick={() => setViewDialog(null)} className="h-9 px-3 rounded-md border border-gray-200 dark:border-gray-700">Close</button>
             </div>
           </div>
         </div>

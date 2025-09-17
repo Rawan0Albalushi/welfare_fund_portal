@@ -43,6 +43,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
       path: '/programs',
     },
     {
+      id: 'campaigns',
+      label: t('navigation.campaigns'),
+      icon: <span>🎯</span>,
+      path: '/campaigns',
+    },
+    {
       id: 'applications',
       label: t('navigation.applications'),
       icon: <span>📄</span>,
@@ -53,6 +59,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
       label: t('navigation.donations'),
       icon: <span>💗</span>,
       path: '/donations',
+    },
+    {
+      id: 'users',
+      label: t('navigation.users'),
+      icon: <span>👥</span>,
+      path: '/users',
+    },
+    {
+      id: 'rolesPermissions',
+      label: t('navigation.roles_permissions'),
+      icon: <span>🔐</span>,
+      path: '/roles-permissions',
+    },
+    {
+      id: 'auditLogs',
+      label: t('navigation.audit_logs'),
+      icon: <span>🧾</span>,
+      path: '/audit-logs',
     },
     {
       id: 'settings',
@@ -143,6 +167,12 @@ export const PermanentSidebar: React.FC<{ drawerWidth: number }> = ({ drawerWidt
       path: '/programs',
     },
     {
+      id: 'campaigns',
+      label: t('navigation.campaigns'),
+      icon: <span>🎯</span>,
+      path: '/campaigns',
+    },
+    {
       id: 'applications',
       label: t('navigation.applications'),
       icon: <span>📄</span>,
@@ -153,6 +183,24 @@ export const PermanentSidebar: React.FC<{ drawerWidth: number }> = ({ drawerWidt
       label: t('navigation.donations'),
       icon: <span>💗</span>,
       path: '/donations',
+    },
+    {
+      id: 'users',
+      label: t('navigation.users'),
+      icon: <span>👥</span>,
+      path: '/users',
+    },
+    {
+      id: 'rolesPermissions',
+      label: t('navigation.roles_permissions'),
+      icon: <span>🔐</span>,
+      path: '/roles-permissions',
+    },
+    {
+      id: 'auditLogs',
+      label: t('navigation.audit_logs'),
+      icon: <span>🧾</span>,
+      path: '/audit-logs',
     },
     {
       id: 'settings',

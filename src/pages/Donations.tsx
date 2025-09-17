@@ -16,6 +16,7 @@ export const Donations: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [typeFilter, setTypeFilter] = useState<string>('');
+  const [viewDialog, setViewDialog] = useState<Donation | null>(null);
 
   const { data: donationsData, isLoading } = useDonations({
     page: page + 1,
@@ -111,9 +112,13 @@ export const Donations: React.FC = () => {
           <div className="text-xs opacity-90">Total Donations</div>
         </div>
         <div className="px-3 py-2 rounded-lg bg-emerald-600 text-white min-w-[150px]">
-          <div className="text-lg font-semibold">{formatCurrency(
-            donationsData?.data.reduce((sum, donation) => sum + donation.amount, 0) || 0
-          )}</div>
+          {(() => {
+            const donations = donationsData?.data ?? [];
+            const totalAmount = donations.reduce((sum, donation) => sum + (donation?.amount || 0), 0);
+            return (
+              <div className="text-lg font-semibold">{formatCurrency(totalAmount)}</div>
+            );
+          })()}
           <div className="text-xs opacity-90">Total Amount</div>
         </div>
       </div>
@@ -159,7 +164,7 @@ export const Donations: React.FC = () => {
       </div>
 
       {/* Data Table */}
-      {donationsData?.data.length === 0 ? (
+      {(donationsData?.data?.length ?? 0) === 0 ? (
         <EmptyState
           title={t('donations.no_donations')}
           description="No donations found matching your criteria"
@@ -167,7 +172,7 @@ export const Donations: React.FC = () => {
       ) : (
         <DataTable
           columns={columns}
-          data={donationsData?.data || []}
+          data={donationsData?.data ?? []}
           totalCount={donationsData?.total || 0}
           page={page}
           rowsPerPage={rowsPerPage}
@@ -176,11 +181,45 @@ export const Donations: React.FC = () => {
           onSort={handleSort}
           sortBy={sortBy}
           sortDirection={sortOrder}
-          onView={(donation) => {
-            // TODO: Implement view donation details
-            console.log('View donation:', donation);
-          }}
+          onView={(donation) => setViewDialog(donation)}
         />
+      )}
+      {viewDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setViewDialog(null)} />
+          <div className="relative w-full max-w-xl rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card p-4">
+            <h3 className="text-lg font-semibold mb-3">Donation Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div>
+                <div className="text-gray-500 mb-1">Donation ID</div>
+                <div className="font-medium">{viewDialog.donation_id}</div>
+              </div>
+              <div>
+                <div className="text-gray-500 mb-1">Donor</div>
+                <div className="font-medium">{viewDialog.donor_name}</div>
+              </div>
+              <div>
+                <div className="text-gray-500 mb-1">Amount</div>
+                <div className="font-medium">{formatCurrency(viewDialog.amount)}</div>
+              </div>
+              <div>
+                <div className="text-gray-500 mb-1">Status</div>
+                <div className="font-medium">{viewDialog.status}</div>
+              </div>
+              <div>
+                <div className="text-gray-500 mb-1">Program</div>
+                <div className="font-medium">{viewDialog.program?.title || 'N/A'}</div>
+              </div>
+              <div>
+                <div className="text-gray-500 mb-1">Created</div>
+                <div className="font-medium">{new Date(viewDialog.created_at).toLocaleString()}</div>
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button onClick={() => setViewDialog(null)} className="h-9 px-3 rounded-md border border-gray-200 dark:border-gray-700">Close</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

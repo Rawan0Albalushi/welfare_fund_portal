@@ -1,70 +1,64 @@
-import apiClient from '../client';
-import { type LoginRequest, type LoginResponse, type User } from '../../types';
+import apiClient from '../axios';
+import { type LoginRequest, type LoginResponse, type AdminUser } from '../../types';
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    try {
-      console.log('🌐 [AUTH] Attempting login with API...');
-      const response = await apiClient.post('/auth/login', credentials);
-      console.log('✅ [AUTH] API login successful');
-      return response.data;
-    } catch (error: any) {
-      console.error('❌ [AUTH] API login failed:', error);
-      
-      // Fallback for development/testing - create mock response
-      if (error.code === 'ERR_NETWORK' || error.response?.status >= 500 || error.code === 'ECONNREFUSED') {
-        console.log('🔄 [AUTH] Using fallback login for development...');
-        console.log('🔄 [AUTH] Error details:', {
-          code: error.code,
-          status: error.response?.status,
-          message: error.message
-        });
-        
-        // Mock successful login for development
-        const mockUser = {
-          id: 1,
-          name: 'Admin User',
-          phone: credentials.phone,
-          email: 'admin@example.com',
-          settings: {},
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        
-        const mockResponse = {
-          user: mockUser,
-          token: 'mock_token_' + Date.now(),
-        };
-        
-        console.log('🎭 [AUTH] Mock login successful:', mockResponse);
-        return mockResponse;
-      }
-      
-      throw error;
-    }
+    console.log('🌐 [AUTH] Attempting admin login with API...');
+    const response = await apiClient.post('/auth/login', credentials);
+    console.log('✅ [AUTH] Admin API login successful');
+    return response.data;
   },
 
   logout: async (): Promise<void> => {
     await apiClient.post('/auth/logout');
   },
 
-  getMe: async (): Promise<User> => {
+  getMe: async (): Promise<AdminUser> => {
     console.log('🔍 [AUTH] getMe called at:', new Date().toISOString());
     
     try {
+      // Primary endpoint per spec
       const response = await apiClient.get('/auth/me');
       console.log('✅ [AUTH] getMe response received at:', new Date().toISOString());
       return response.data;
     } catch (error: any) {
-      console.error('❌ [AUTH] getMe failed:', error);
-      
-      // Fallback - try to get user from localStorage
-      const storedUser = localStorage.getItem('admin_user');
-      if (storedUser) {
-        console.log('🔄 [AUTH] Using stored user data as fallback');
-        return JSON.parse(storedUser);
+      console.error('❌ [AUTH] getMe failed (primary /auth/me):', error);
+
+      // Fallback to /user for older backends
+      if (error?.response?.status === 404) {
+        try {
+          const fallback = await apiClient.get('/user');
+          console.log('✅ [AUTH] getMe fallback /user response received at:', new Date().toISOString());
+          return fallback.data;
+        } catch (fallbackError: any) {
+          console.error('❌ [AUTH] getMe fallback /user failed:', fallbackError);
+        }
       }
       
+      // If it's a 401 error, clear any invalid tokens
+      if (error.response?.status === 401) {
+        console.log('🚨 [AUTH] 401 error - clearing invalid tokens');
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+      }
+      
+      throw error;
+    }
+  },
+
+  updateProfile: async (profileData: Partial<AdminUser>): Promise<AdminUser> => {
+    console.log('🔄 [AUTH] Updating admin profile...');
+    try {
+      const response = await apiClient.put('/auth/me', profileData);
+      console.log('✅ [AUTH] Profile updated successfully');
+      return response.data;
+    } catch (error: any) {
+      // Fallback for older backend
+      if (error?.response?.status === 404) {
+        const fallback = await apiClient.put('/user', profileData);
+        console.log('✅ [AUTH] Profile updated via fallback /user');
+        return fallback.data;
+      }
       throw error;
     }
   },

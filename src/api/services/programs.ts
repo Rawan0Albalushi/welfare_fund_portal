@@ -1,28 +1,133 @@
-import apiClient from '../client';
+import apiClient from '../axios';
 import { type Program, type CreateProgramRequest, type UpdateProgramRequest, type PaginatedResponse, type QueryParams } from '../../types';
+
+// Normalize API <-> UI fields
+const mapApiProgramToUi = (p: any): Program => ({
+  id: p.id,
+  created_at: p.created_at,
+  updated_at: p.updated_at,
+  deleted_at: p.deleted_at,
+  name: p.name ?? p.title ?? '',
+  status: p.status,
+});
+
+const mapUiToApiPayload = (data: Partial<CreateProgramRequest | UpdateProgramRequest>) => {
+  const payload: Record<string, any> = {};
+  if ((data as any).name !== undefined) {
+    payload.title = (data as any).name;
+  }
+  if ((data as any).status !== undefined) {
+    payload.status = (data as any).status;
+  }
+  return payload;
+};
 
 export const programsService = {
   getPrograms: async (params?: QueryParams): Promise<PaginatedResponse<Program>> => {
-    const response = await apiClient.get('/v1/admin/programs', { params });
-    return response.data;
+    try {
+      const response = await apiClient.get('/programs', { params });
+      const rawAny = (response.data?.data ?? response.data) as any;
+      if (Array.isArray(rawAny)) {
+        const mapped = rawAny.map(mapApiProgramToUi);
+        return {
+          data: mapped,
+          current_page: 1,
+          last_page: 1,
+          per_page: mapped.length,
+          total: mapped.length,
+          from: mapped.length > 0 ? 1 : 0,
+          to: mapped.length,
+        } as PaginatedResponse<Program>;
+      }
+      const raw = rawAny as PaginatedResponse<any>;
+      return {
+        ...raw,
+        data: Array.isArray(raw.data) ? raw.data.map(mapApiProgramToUi) : [],
+      } as PaginatedResponse<Program>;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        const response = await apiClient.get('/programs', { params });
+        const rawAny = (response.data?.data ?? response.data) as any;
+        if (Array.isArray(rawAny)) {
+          const mapped = rawAny.map(mapApiProgramToUi);
+          return {
+            data: mapped,
+            current_page: 1,
+            last_page: 1,
+            per_page: mapped.length,
+            total: mapped.length,
+            from: mapped.length > 0 ? 1 : 0,
+            to: mapped.length,
+          } as PaginatedResponse<Program>;
+        }
+        const raw = rawAny as PaginatedResponse<any>;
+        return {
+          ...raw,
+          data: Array.isArray(raw.data) ? raw.data.map(mapApiProgramToUi) : [],
+        } as PaginatedResponse<Program>;
+      }
+      throw error;
+    }
   },
 
   getProgram: async (id: number): Promise<Program> => {
-    const response = await apiClient.get(`/v1/admin/programs/${id}`);
-    return response.data;
+    try {
+      const response = await apiClient.get(`/programs/${id}`);
+      const raw = (response.data?.data ?? response.data) as any;
+      return mapApiProgramToUi(raw);
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        const response = await apiClient.get(`/programs/${id}`);
+        const raw = (response.data?.data ?? response.data) as any;
+        return mapApiProgramToUi(raw);
+      }
+      throw error;
+    }
   },
 
   createProgram: async (data: CreateProgramRequest): Promise<Program> => {
-    const response = await apiClient.post('/v1/admin/programs', data);
-    return response.data;
+    try {
+      const payload = mapUiToApiPayload(data);
+      const response = await apiClient.post('/programs', payload);
+      const raw = (response.data?.data ?? response.data) as any;
+      return mapApiProgramToUi(raw);
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        const payload = mapUiToApiPayload(data);
+        const response = await apiClient.post('/programs', payload);
+        const raw = (response.data?.data ?? response.data) as any;
+        return mapApiProgramToUi(raw);
+      }
+      throw error;
+    }
   },
 
   updateProgram: async (id: number, data: UpdateProgramRequest): Promise<Program> => {
-    const response = await apiClient.put(`/v1/admin/programs/${id}`, data);
-    return response.data;
+    try {
+      const payload = mapUiToApiPayload(data);
+      const response = await apiClient.put(`/programs/${id}`, payload);
+      const raw = (response.data?.data ?? response.data) as any;
+      return mapApiProgramToUi(raw);
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        const payload = mapUiToApiPayload(data);
+        const response = await apiClient.put(`/programs/${id}`, payload);
+        const raw = (response.data?.data ?? response.data) as any;
+        return mapApiProgramToUi(raw);
+      }
+      throw error;
+    }
   },
 
   deleteProgram: async (id: number): Promise<void> => {
-    await apiClient.delete(`/v1/admin/programs/${id}`);
+    try {
+      await apiClient.delete(`/programs/${id}`);
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        await apiClient.delete(`/programs/${id}`);
+        return;
+      }
+      throw error;
+    }
   },
 };

@@ -55,13 +55,30 @@ apiClient.interceptors.response.use(
       timestamp: new Date().toISOString()
     });
     
+    // Handle timeout specifically
+    if (error.code === 'ECONNABORTED' || error.message?.toLowerCase()?.includes('timeout')) {
+      try {
+        // Show a simple snackbar if available
+        if (typeof window !== 'undefined') {
+          const event = new CustomEvent('app:snackbar', { detail: { message: 'Server not responding', severity: 'error' } });
+          window.dispatchEvent(event);
+        }
+      } catch {}
+    }
+
     if (error.response) {
       const { status, data } = error.response;
       
       switch (status) {
         case 401:
-          // Unauthorized - do not auto-redirect or clear token during client-side auth flow
-          console.warn('Unauthorized (401) received. Suppressing auto-redirect to preserve client auth state.');
+          // Unauthorized - clear any invalid tokens
+          console.warn('🚨 [API] Unauthorized (401) - token may be expired or invalid');
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          // Redirect to login if not already there
+          if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
           break;
         case 403:
           // Forbidden

@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { usePrograms, useCreateProgram, useUpdateProgram, useDeleteProgram } from '../hooks/usePrograms';
-import { useCategories } from '../hooks/useCategories';
 import { DataTable, type Column } from '../components/common/DataTable';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { Loader } from '../components/common/Loader';
@@ -18,7 +17,7 @@ export const Programs: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  // Removed category filter per simplified program model
   
   const [openDialog, setOpenDialog] = useState(false);
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
@@ -36,10 +35,9 @@ export const Programs: React.FC = () => {
     sort_order: sortOrder,
     search,
     status: statusFilter,
-    category_id: categoryFilter ? parseInt(categoryFilter) : undefined,
   });
 
-  const { data: categoriesData } = useCategories({ per_page: 100 });
+  // No categories needed
 
   const createProgramMutation = useCreateProgram();
   const updateProgramMutation = useUpdateProgram();
@@ -52,13 +50,8 @@ export const Programs: React.FC = () => {
     formState: { errors },
   } = useForm<CreateProgramRequest>({
     defaultValues: {
-      title: '',
-      description: '',
-      category_id: 0,
-      goal_amount: 0,
-      status: 'draft',
-      start_date: '',
-      end_date: '',
+      name: '',
+      status: 'active',
     },
   });
 
@@ -70,23 +63,10 @@ export const Programs: React.FC = () => {
       sortable: true,
     },
     {
-      id: 'title',
+      id: 'name',
       label: t('programs.program_title'),
       minWidth: 200,
       sortable: true,
-    },
-    {
-      id: 'category.name',
-      label: t('programs.program_category'),
-      minWidth: 150,
-      render: (_, row) => row.category?.name || 'N/A',
-    },
-    {
-      id: 'goal_amount',
-      label: t('programs.goal_amount'),
-      minWidth: 120,
-      sortable: true,
-      render: (value) => `$${value?.toLocaleString()}`,
     },
     {
       id: 'status',
@@ -107,24 +87,14 @@ export const Programs: React.FC = () => {
     if (program) {
       setEditingProgram(program);
       reset({
-        title: program.title,
-        description: program.description,
-        category_id: program.category_id,
-        goal_amount: program.goal_amount,
-        status: program.status,
-        start_date: program.start_date,
-        end_date: program.end_date,
+        name: (program as any).name || (program as any).title || '',
+        status: (program as any).status,
       });
     } else {
       setEditingProgram(null);
       reset({
-        title: '',
-        description: '',
-        category_id: 0,
-        goal_amount: 0,
-        status: 'draft',
-        start_date: '',
-        end_date: '',
+        name: '',
+        status: 'active',
       });
     }
     setOpenDialog(true);
@@ -226,29 +196,15 @@ export const Programs: React.FC = () => {
             className="w-[180px] h-10 px-3 rounded-lg border border-indigoSoft-200 dark:border-gray-700 bg-white dark:bg-gray-800"
           >
             <option value="">All</option>
-            <option value="draft">Draft</option>
             <option value="active">Active</option>
-            <option value="paused">Paused</option>
-            <option value="archived">Archived</option>
+            <option value="inactive">Inactive</option>
           </select>
         </div>
-        <div>
-          <label className="block text-sm mb-1">{t('programs.program_category')}</label>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-[200px] h-10 px-3 rounded-lg border border-indigoSoft-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-          >
-            <option value="">All Categories</option>
-            {categoriesData?.data.map((category) => (
-              <option key={category.id} value={category.id.toString()}>{category.name}</option>
-            ))}
-          </select>
-        </div>
+        
       </div>
 
       {/* Data Table */}
-      {programsData?.data.length === 0 ? (
+      {programsData?.data?.length === 0 ? (
         <EmptyState
           title={t('programs.no_programs')}
           description="No programs found matching your criteria"
@@ -281,7 +237,7 @@ export const Programs: React.FC = () => {
             <form onSubmit={handleSubmit(handleSubmitForm)}>
               <div className="flex flex-col gap-3">
                 <Controller
-                  name="title"
+                  name="name"
                   control={control}
                   rules={{ required: t('programs.program_title') + ' is required' }}
                   render={({ field }) => (
@@ -290,118 +246,18 @@ export const Programs: React.FC = () => {
                       <input
                         {...field}
                         autoFocus
-                        className={`w-full h-10 px-3 rounded-md border ${errors.title ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                        className={`w-full h-10 px-3 rounded-md border ${(errors as any).name ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
                         placeholder={t('programs.program_title')}
                       />
-                      {errors.title && (
-                        <div className="text-xs text-rose-600 mt-1">{String(errors.title.message)}</div>
+                      {(errors as any).name && (
+                        <div className="text-xs text-rose-600 mt-1">{String((errors as any).name.message)}</div>
                       )}
                     </div>
                   )}
                 />
-                <Controller
-                  name="description"
-                  control={control}
-                  rules={{ required: t('programs.program_description') + ' is required' }}
-                  render={({ field }) => (
-                    <div>
-                      <label className="block text-sm mb-1">{t('programs.program_description')}</label>
-                      <textarea
-                        {...field}
-                        className={`w-full px-3 py-2 rounded-md border ${errors.description ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                        rows={3}
-                        placeholder={t('programs.program_description')}
-                      />
-                      {errors.description && (
-                        <div className="text-xs text-rose-600 mt-1">{String(errors.description.message)}</div>
-                      )}
-                    </div>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Controller
-                    name="category_id"
-                    control={control}
-                    rules={{ required: t('programs.program_category') + ' is required' }}
-                    render={({ field }) => (
-                      <div>
-                        <label className="block text-sm mb-1">{t('programs.program_category')}</label>
-                        <select
-                          {...field}
-                          className={`w-full h-10 px-3 rounded-md border ${errors.category_id ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                        >
-                          {categoriesData?.data.map((category) => (
-                            <option key={category.id} value={category.id}>{category.name}</option>
-                          ))}
-                        </select>
-                        {errors.category_id && (
-                          <div className="text-xs text-rose-600 mt-1">{String(errors.category_id.message as any)}</div>
-                        )}
-                      </div>
-                    )}
-                  />
-
-                  <Controller
-                    name="goal_amount"
-                    control={control}
-                    rules={{ required: t('programs.goal_amount') + ' is required', min: 0 }}
-                    render={({ field }) => (
-                      <div>
-                        <label className="block text-sm mb-1">{t('programs.goal_amount')}</label>
-                        <input
-                          {...field}
-                          type="number"
-                          className={`w-full h-10 px-3 rounded-md border ${errors.goal_amount ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                          placeholder={t('programs.goal_amount')}
-                        />
-                        {errors.goal_amount && (
-                          <div className="text-xs text-rose-600 mt-1">{String(errors.goal_amount.message as any)}</div>
-                        )}
-                      </div>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Controller
-                    name="start_date"
-                    control={control}
-                    rules={{ required: t('programs.start_date') + ' is required' }}
-                    render={({ field }) => (
-                      <div>
-                        <label className="block text-sm mb-1">{t('programs.start_date')}</label>
-                        <input
-                          {...field}
-                          type="date"
-                          className={`w-full h-10 px-3 rounded-md border ${errors.start_date ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                        />
-                        {errors.start_date && (
-                          <div className="text-xs text-rose-600 mt-1">{String(errors.start_date.message)}</div>
-                        )}
-                      </div>
-                    )}
-                  />
-
-                  <Controller
-                    name="end_date"
-                    control={control}
-                    rules={{ required: t('programs.end_date') + ' is required' }}
-                    render={({ field }) => (
-                      <div>
-                        <label className="block text-sm mb-1">{t('programs.end_date')}</label>
-                        <input
-                          {...field}
-                          type="date"
-                          className={`w-full h-10 px-3 rounded-md border ${errors.end_date ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                        />
-                        {errors.end_date && (
-                          <div className="text-xs text-rose-600 mt-1">{String(errors.end_date.message)}</div>
-                        )}
-                      </div>
-                    )}
-                  />
-                </div>
+                
+                
+                
 
                 <Controller
                   name="status"
@@ -413,10 +269,8 @@ export const Programs: React.FC = () => {
                         {...field}
                         className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                       >
-                        <option value="draft">Draft</option>
                         <option value="active">Active</option>
-                        <option value="paused">Paused</option>
-                        <option value="archived">Archived</option>
+                        <option value="inactive">Inactive</option>
                       </select>
                     </div>
                   )}

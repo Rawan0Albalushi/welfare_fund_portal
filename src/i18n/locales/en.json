@@ -43,8 +43,12 @@
     "dashboard": "Dashboard",
     "categories": "Categories",
     "programs": "Programs",
+    "campaigns": "Campaigns",
     "applications": "Applications",
     "donations": "Donations",
+    "users": "Users",
+    "roles_permissions": "Roles & Permissions",
+    "audit_logs": "Audit Logs",
     "settings": "Settings"
   },
   "dashboard": {

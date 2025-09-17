@@ -37,7 +37,7 @@ export const Login: React.FC = () => {
     formState: { errors },
   } = useForm<LoginRequest>({
     defaultValues: {
-      phone: '',
+      email: '',
       password: '',
     },
   });
@@ -88,61 +88,27 @@ export const Login: React.FC = () => {
         code: err.code
       });
       
-      // Fallback: If API fails, try mock login for development
-      if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED' || err.response?.status >= 500) {
-        console.log('🔄 [Login] Attempting fallback login...');
-        try {
-          // Create mock user data
-          const mockUser = {
-            id: 1,
-            name: 'Admin User',
-            phone: data.phone,
-            email: 'admin@example.com',
-            settings: {},
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-          
-          const mockToken = 'mock_token_' + Date.now();
-          
-          // Save to localStorage
-          localStorage.setItem('admin_token', mockToken);
-          localStorage.setItem('admin_user', JSON.stringify(mockUser));
-          
-          console.log('🎭 [Login] Fallback login successful, redirecting...');
-          // Force page reload to ensure auth state is properly initialized
-          window.location.href = '/dashboard';
-          return;
-        } catch (fallbackError) {
-          console.error('❌ [Login] Fallback login also failed:', fallbackError);
-        }
+      // Show specific error messages based on the error type
+      let errorMessage = t('auth.login_error');
+      
+      if (err.response?.status === 401) {
+        errorMessage = 'بيانات الدخول غير صحيحة. تحقق من البريد الإلكتروني وكلمة المرور.';
+      } else if (err.response?.status === 422) {
+        errorMessage = 'البيانات المدخلة غير صحيحة. تحقق من صحة البيانات.';
+      } else if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED') {
+        errorMessage = 'لا يمكن الاتصال بالخادم. تأكد من أن الخادم يعمل.';
+      } else if (err.response?.status >= 500) {
+        errorMessage = 'خطأ في الخادم. حاول مرة أخرى لاحقاً.';
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
       }
       
-      setLoginError(err.response?.data?.message || err.message || t('auth.login_error'));
+      setLoginError(errorMessage);
     }
   };
 
-  // Quick mock login to bypass issues temporarily
-  const handleQuickLogin = () => {
-    try {
-      const mockUser = {
-        id: 1,
-        name: 'Admin User',
-        phone: '+966501234567',
-        email: 'admin@example.com',
-        settings: {},
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      const mockToken = 'mock_token_' + Date.now();
-      localStorage.setItem('admin_token', mockToken);
-      localStorage.setItem('admin_user', JSON.stringify(mockUser));
-      console.log('⚡ [Login] Quick Login activated, redirecting...');
-      window.location.href = '/dashboard';
-    } catch (e) {
-      console.error('❌ [Login] Quick Login failed:', e);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 dark:bg-gray-950">
@@ -156,23 +122,38 @@ export const Login: React.FC = () => {
           </div>
           <h1 className="text-2xl font-semibold tracking-tight mb-1">{t('auth.login')}</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">Student Welfare Fund Admin Portal</p>
+          
+          {/* Debug Info */}
+          <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded text-xs">
+            <p><strong>API URL:</strong> {import.meta.env.VITE_API_URL || 'غير محدد'}</p>
+            <p><strong>الخادم:</strong> {import.meta.env.VITE_API_URL ? 'مُعرّف' : 'غير مُعرّف'}</p>
+          </div>
         </div>
 
         {loginError && (
-          <div className="mb-3 rounded-md border border-rose-200 bg-rose-50 text-rose-700 px-3 py-2 text-sm">
-            {loginError}
+          <div className="mb-3 rounded-md border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 px-3 py-2 text-sm">
+            <div className="flex items-start">
+              <svg className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <p className="font-medium">خطأ في تسجيل الدخول</p>
+                <p className="mt-1">{loginError}</p>
+              </div>
+            </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
           <FormField
-            name="phone"
+            name="email"
             control={control}
-            label={t('auth.phone')}
+            label="البريد الإلكتروني"
+            type="email"
             required
             fullWidth
-            helperText={errors.phone?.message as string}
-            error={!!errors.phone}
+            helperText={errors.email?.message as string}
+            error={!!errors.email}
           />
 
           <Controller
@@ -207,14 +188,6 @@ export const Login: React.FC = () => {
             className="w-full h-10 rounded-md bg-primary-600 hover:bg-primary-700 transition text-white disabled:opacity-60"
           >
             {isLoggingIn ? t('common.loading') : t('auth.login')}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleQuickLogin}
-            className="w-full h-10 rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-          >
-            Quick Login (Mock)
           </button>
         </form>
       </div>

@@ -29,24 +29,14 @@ export interface UpdateCategoryRequest extends Partial<CreateCategoryRequest> {}
 
 // Program types
 export interface Program extends BaseEntity {
-  category_id: number;
-  title: string;
-  description: string;
-  status: 'draft' | 'active' | 'paused' | 'archived';
-  goal_amount: number;
-  start_date: string;
-  end_date: string;
-  category?: Category;
+  name: string;
+  status: 'active' | 'inactive';
+  deleted_at?: string;
 }
 
 export interface CreateProgramRequest {
-  category_id: number;
-  title: string;
-  description: string;
-  goal_amount: number;
-  status: 'draft' | 'active' | 'paused' | 'archived';
-  start_date: string;
-  end_date: string;
+  name: string;
+  status: 'active' | 'inactive';
 }
 
 export interface UpdateProgramRequest extends Partial<CreateProgramRequest> {}
@@ -55,15 +45,24 @@ export interface UpdateProgramRequest extends Partial<CreateProgramRequest> {}
 export interface Donation extends BaseEntity {
   donation_id: string;
   program_id?: number;
-  campaign_id?: number;
+  campaign_id?: number | null;
   amount: number;
   donor_name: string;
-  type: 'quick' | 'program' | 'campaign';
-  status: 'pending' | 'paid' | 'failed' | 'cancelled';
-  user_id?: number;
-  note?: string;
-  paid_at?: string;
-  payment_session_id?: string;
+  donor_email?: string | null;
+  donor_phone?: string | null;
+  type: 'quick' | 'gift';
+  status: 'pending' | 'paid' | 'failed' | 'expired';
+  payment_method?: string | null;
+  is_anonymous?: boolean;
+  message?: string | null;
+  payload?: Record<string, any> | null;
+  user_id?: number | null;
+  note?: string | null;
+  expires_at?: string | null;
+  paid_at?: string | null;
+  payment_session_id?: string | null;
+  payment_url?: string | null;
+  paid_amount?: number | null;
   program?: Program;
   user?: User;
 }
@@ -71,24 +70,40 @@ export interface Donation extends BaseEntity {
 // Student Registration types
 export interface StudentRegistration extends BaseEntity {
   registration_id: string;
-  user_id: number;
-  program_id: number;
-  personal_json: {
-    name: string;
-    phone: string;
-    email: string;
-  };
-  academic_json: {
-    university: string;
-    major: string;
-    gpa: string;
-  };
-  financial_json: {
-    income: number;
-    expenses: number;
-  };
+  user_id?: number | null;
+  program_id?: number | null;
+  // New direct fields (preferred)
+  student_name?: string | null;
+  student_id?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  university?: string | null;
+  college?: string | null;
+  major?: string | null;
+  academic_year?: string | null;
+  gpa?: number | null;
+  family_income?: number | null;
+  family_members?: number | null;
+  support_needed?: string | null;
+  notes?: string | null;
+  // Legacy JSON fields (still optional for backward-compat)
+  personal_json?: {
+    name?: string;
+    phone?: string;
+    email?: string;
+  } | null;
+  academic_json?: {
+    university?: string;
+    major?: string;
+    gpa?: string;
+  } | null;
+  financial_json?: {
+    income?: number;
+    expenses?: number;
+  } | null;
   status: 'pending' | 'under_review' | 'approved' | 'rejected';
-  reject_reason?: string;
+  reject_reason?: string | null;
+  id_card_image?: string | null;
   user?: User;
   program?: Program;
 }
@@ -112,18 +127,27 @@ export interface PaginatedResponse<T> {
 
 // Auth types
 export interface LoginRequest {
-  phone: string;
+  email: string;
   password: string;
 }
 
 export interface LoginResponse {
-  user: User;
+  admin: AdminUser;
   token: string;
 }
 
 export interface AuthUser {
-  user: User;
+  admin: AdminUser;
   token: string;
+}
+
+// Admin User types
+export interface AdminUser extends BaseEntity {
+  name: string;
+  email: string;
+  role: 'super_admin' | 'admin';
+  permissions: string[];
+  is_active: boolean;
 }
 
 // Dashboard types
@@ -169,7 +193,7 @@ export interface FormFieldProps {
 }
 
 // Status types
-export type StatusType = 'active' | 'inactive' | 'pending' | 'approved' | 'rejected' | 'under_review' | 'draft' | 'paused' | 'archived' | 'paid' | 'failed' | 'cancelled';
+export type StatusType = 'active' | 'inactive' | 'pending' | 'approved' | 'rejected' | 'under_review' | 'draft' | 'paused' | 'archived' | 'paid' | 'failed' | 'expired';
 
 export interface StatusOption {
   value: StatusType;

@@ -27,7 +27,7 @@ export const Categories: React.FC = () => {
     severity: 'success',
   });
 
-  const { data: categoriesData, isLoading } = useCategories({
+  const { data: categoriesData, isLoading, refetch } = useCategories({
     page: page + 1,
     per_page: rowsPerPage,
     sort_by: sortBy,
@@ -123,7 +123,9 @@ export const Categories: React.FC = () => {
           severity: 'success',
         });
       }
+      setPage(0);
       handleCloseDialog();
+      void refetch();
     } catch (error) {
       setSnackbar({
         open: true,
@@ -144,6 +146,8 @@ export const Categories: React.FC = () => {
         severity: 'success',
       });
       setDeleteDialog(null);
+      setPage(0);
+      void refetch();
     } catch (error) {
       setSnackbar({
         open: true,
@@ -200,7 +204,7 @@ export const Categories: React.FC = () => {
       </div>
 
       {/* Data Table */}
-      {categoriesData?.data.length === 0 ? (
+      {(categoriesData?.data?.length ?? 0) === 0 ? (
         <EmptyState
           title={t('categories.no_categories')}
           description="No categories found matching your criteria"
