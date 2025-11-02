@@ -184,7 +184,7 @@ export const Donations: React.FC = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Donations Card */}
-        <div className="stat-card">
+        <div className="stat-card stat-card-total">
           <div className="stat-card-icon bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
             📊
           </div>
@@ -194,7 +194,7 @@ export const Donations: React.FC = () => {
         </div>
 
         {/* Total Amount Card */}
-        <div className="stat-card">
+        <div className="stat-card stat-card-amount">
           <div className="stat-card-icon bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
             💵
           </div>
@@ -204,7 +204,7 @@ export const Donations: React.FC = () => {
         </div>
 
         {/* Paid Donations Card */}
-        <div className="stat-card">
+        <div className="stat-card stat-card-paid">
           <div className="stat-card-icon bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
             ✅
           </div>
@@ -214,7 +214,7 @@ export const Donations: React.FC = () => {
         </div>
 
         {/* Average Amount Card */}
-        <div className="stat-card">
+        <div className="stat-card stat-card-average">
           <div className="stat-card-icon bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
             📈
           </div>

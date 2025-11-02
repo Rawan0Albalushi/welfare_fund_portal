@@ -243,7 +243,7 @@ export const FinancialReport: React.FC = () => {
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="stat-card">
+            <div className="stat-card stat-card-total">
               <div className="stat-card-icon bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
                 💰
               </div>
@@ -251,7 +251,7 @@ export const FinancialReport: React.FC = () => {
               <div className="stat-card-label">{t('financial_report.total_donations')}</div>
               <div className="stat-card-subtitle">{i18n.language === 'en' ? 'Total Donations' : ''}</div>
             </div>
-            <div className="stat-card">
+            <div className="stat-card stat-card-paid">
               <div className="stat-card-icon bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
                 ✅
               </div>
@@ -259,7 +259,7 @@ export const FinancialReport: React.FC = () => {
               <div className="stat-card-label">{t('financial_report.paid_donations')}</div>
               <div className="stat-card-subtitle">{i18n.language === 'en' ? 'Paid Donations' : ''}</div>
             </div>
-            <div className="stat-card">
+            <div className="stat-card stat-card-pending">
               <div className="stat-card-icon bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
                 ⏳
               </div>
@@ -267,7 +267,7 @@ export const FinancialReport: React.FC = () => {
               <div className="stat-card-label">{t('financial_report.pending_donations')}</div>
               <div className="stat-card-subtitle">{i18n.language === 'en' ? 'Pending Donations' : ''}</div>
             </div>
-            <div className="stat-card">
+            <div className="stat-card stat-card-info">
               <div className="stat-card-icon bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400">
                 👥
               </div>
