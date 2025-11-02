@@ -308,28 +308,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       </svg>
                     </button>
 
-                    {/* Audit Logs */}
-                    <button 
-                      onClick={() => {
-                        setProfileOpen(false);
-                        navigate('/audit-logs');
-                      }}
-                      className={`group w-full px-4 py-3 rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950/30 dark:hover:to-purple-950/30 hover:border hover:border-blue-200 dark:hover:border-blue-800 flex items-center gap-3 ${isRTL ? 'text-right' : 'text-left'}`}
-                    >
-                      <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 group-hover:scale-110 transition-all flex-shrink-0">
-                        <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-gray-800 dark:text-gray-200 truncate">Audit Logs</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">View activity history</p>
-                      </div>
-                      <svg className={`w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 ${isRTL ? 'rotate-180' : ''}`} fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-
                     {/* Divider */}
                     <div className="h-px bg-gray-200 dark:bg-gray-700 my-2"></div>
 

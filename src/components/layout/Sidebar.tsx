@@ -74,12 +74,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
       path: '/users',
     },
     {
-      id: 'auditLogs',
-      label: t('navigation.audit_logs'),
-      icon: <span>🧾</span>,
-      path: '/audit-logs',
-    },
-    {
       id: 'settings',
       label: t('navigation.settings'),
       icon: <span>⚙️</span>,
@@ -280,12 +274,6 @@ export const PermanentSidebar: React.FC<{ drawerWidth: number }> = ({ drawerWidt
       label: t('navigation.users'),
       icon: <span>👥</span>,
       path: '/users',
-    },
-    {
-      id: 'auditLogs',
-      label: t('navigation.audit_logs'),
-      icon: <span>🧾</span>,
-      path: '/audit-logs',
     },
     {
       id: 'settings',
