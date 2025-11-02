@@ -16,7 +16,7 @@ import { Applications } from './pages/Applications';
 import { Campaigns } from './pages/Campaigns';
 import { Users } from './pages/Users';
 // import { RolesPermissions } from './pages/RolesPermissions';
-import { AuditLogs } from './pages/AuditLogs';
+// import { AuditLogs } from './pages/AuditLogs';
 import { FinancialReport } from './pages/FinancialReport';
 import './i18n';
 
@@ -75,7 +75,7 @@ function App() {
                             <Route path="/financial-report" element={<FinancialReport />} />
                             <Route path="/users" element={<Users />} />
                             {/* <Route path="/roles-permissions" element={<RolesPermissions />} /> */}
-                            <Route path="/audit-logs" element={<AuditLogs />} />
+                            {/* <Route path="/audit-logs" element={<AuditLogs />} /> */}
                             <Route path="/settings" element={<Settings />} />
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
                           </Routes>
