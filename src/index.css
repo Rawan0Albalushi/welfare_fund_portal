@@ -272,7 +272,69 @@ body {
 
 /* Stat Card Styles */
 .stat-card {
-  @apply relative rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-4 transition-all duration-200 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-600;
+  @apply relative rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-4 transition-all duration-300 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-600 overflow-hidden;
+}
+
+/* Stat Card with subtle colored backgrounds based on statistic type */
+
+/* Total/Count - Blue (information/statistics) */
+.stat-card-total {
+  @apply bg-gradient-to-br from-blue-100/50 via-blue-50/40 to-indigo-100/50 dark:from-blue-950/10 dark:via-blue-950/5 dark:to-indigo-950/10;
+}
+
+/* Amount/Money - Emerald/Green (financial success) */
+.stat-card-amount {
+  @apply bg-gradient-to-br from-emerald-100/50 via-emerald-50/40 to-green-100/50 dark:from-emerald-950/10 dark:via-emerald-950/5 dark:to-green-950/10;
+}
+
+/* Paid/Success - Green (positive/active status) */
+.stat-card-paid,
+.stat-card-approved {
+  @apply bg-gradient-to-br from-green-100/50 via-green-50/40 to-teal-100/50 dark:from-green-950/10 dark:via-green-950/5 dark:to-teal-950/10;
+}
+
+/* Average/Analytics - Purple (analytics/insights) */
+.stat-card-average {
+  @apply bg-gradient-to-br from-purple-100/50 via-purple-50/40 to-pink-100/50 dark:from-purple-950/10 dark:via-purple-950/5 dark:to-pink-950/10;
+}
+
+/* Pending/Warning - Amber/Orange (needs attention) */
+.stat-card-pending {
+  @apply bg-gradient-to-br from-amber-100/50 via-amber-50/40 to-orange-100/50 dark:from-amber-950/10 dark:via-amber-950/5 dark:to-orange-950/10;
+}
+
+/* Under Review - Sky/Cyan (information/processing) */
+.stat-card-review,
+.stat-card-info {
+  @apply bg-gradient-to-br from-sky-100/50 via-cyan-50/40 to-blue-100/50 dark:from-sky-950/10 dark:via-cyan-950/5 dark:to-blue-950/10;
+}
+
+/* Rejected/Error - Rose/Red (negative status) */
+.stat-card-rejected {
+  @apply bg-gradient-to-br from-rose-100/50 via-rose-50/40 to-red-100/50 dark:from-rose-950/10 dark:via-rose-950/5 dark:to-red-950/10;
+}
+
+/* Fallback for stat cards without specific type (backward compatibility) */
+.stat-card:nth-child(1):not([class*="stat-card-"]) {
+  @apply bg-gradient-to-br from-blue-100/50 via-blue-50/40 to-indigo-100/50 dark:from-blue-950/10 dark:via-blue-950/5 dark:to-indigo-950/10;
+}
+
+.stat-card:nth-child(2):not([class*="stat-card-"]) {
+  @apply bg-gradient-to-br from-emerald-100/50 via-emerald-50/40 to-green-100/50 dark:from-emerald-950/10 dark:via-emerald-950/5 dark:to-green-950/10;
+}
+
+.stat-card:nth-child(3):not([class*="stat-card-"]) {
+  @apply bg-gradient-to-br from-green-100/50 via-green-50/40 to-teal-100/50 dark:from-green-950/10 dark:via-green-950/5 dark:to-teal-950/10;
+}
+
+.stat-card:nth-child(4):not([class*="stat-card-"]) {
+  @apply bg-gradient-to-br from-purple-100/50 via-purple-50/40 to-pink-100/50 dark:from-purple-950/10 dark:via-purple-950/5 dark:to-pink-950/10;
+}
+
+/* Subtle gradient overlay for stat cards */
+.stat-card::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-br from-transparent to-white/5 dark:to-black/5 pointer-events-none;
 }
 
 .stat-card-icon {

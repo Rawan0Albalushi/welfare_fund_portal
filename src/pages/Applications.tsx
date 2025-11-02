@@ -135,7 +135,7 @@ export const Applications: React.FC = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Pending Card */}
-        <div className="stat-card">
+        <div className="stat-card stat-card-pending">
           <div className="stat-card-icon bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
             ⏳
           </div>
@@ -145,7 +145,7 @@ export const Applications: React.FC = () => {
         </div>
 
         {/* Under Review Card */}
-        <div className="stat-card">
+        <div className="stat-card stat-card-review">
           <div className="stat-card-icon bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400">
             🔍
           </div>
@@ -155,7 +155,7 @@ export const Applications: React.FC = () => {
         </div>
 
         {/* Approved Card */}
-        <div className="stat-card">
+        <div className="stat-card stat-card-approved">
           <div className="stat-card-icon bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
             ✅
           </div>
@@ -165,7 +165,7 @@ export const Applications: React.FC = () => {
         </div>
 
         {/* Rejected Card */}
-        <div className="stat-card">
+        <div className="stat-card stat-card-rejected">
           <div className="stat-card-icon bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
             ❌
           </div>
