@@ -40,14 +40,14 @@ export const AuditLogs: React.FC = () => {
 	};
 
 	return (
-		<div className="p-4">
-			<div className="flex items-center justify-between mb-4">
-				<h1 className="text-xl font-semibold">Audit Logs</h1>
-				<button onClick={exportCsv} className="px-3 py-2 bg-primary-600 text-white rounded-md">Export CSV</button>
+		<div className="w-full">
+			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+				<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Audit Logs</h1>
+				<button onClick={exportCsv} className="w-full sm:w-auto px-3 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">Export CSV</button>
 			</div>
 			{loading && <div>Loading...</div>}
 			{error && <div className="text-red-600">{error}</div>}
-			<div className="flex flex-wrap items-end gap-3 mb-3">
+			<div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-end gap-3 mb-6">
 				<div>
 					<label className="block text-sm mb-1">User ID</label>
 					<input value={userFilter} onChange={(e) => setUserFilter(e.target.value)} className="w-[160px] h-9 px-3 rounded-md border border-gray-200" />

@@ -90,15 +90,15 @@ export const Users: React.FC = () => {
 	};
 
 	return (
-		<div className="p-4">
-			<div className="flex items-center justify-between mb-4">
-				<h1 className="text-xl font-semibold">Users</h1>
-				<button onClick={openCreate} className="px-3 py-2 bg-primary-600 text-white rounded-md">New</button>
+		<div className="w-full">
+			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+				<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Users</h1>
+				<button onClick={openCreate} className="w-full sm:w-auto px-3 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">New User</button>
 			</div>
 			{loading && <div>Loading...</div>}
 			{error && <div className="text-red-600">{error}</div>}
 			<div className="overflow-auto rounded-lg border border-gray-200">
-				<table className="min-w-full divide-y divide-gray-200">
+				<table className="min-w-full divide-y divide-gray-300">
 					<thead className="bg-gray-50">
 						<tr>
 							<th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">ID</th>
@@ -107,7 +107,7 @@ export const Users: React.FC = () => {
 							<th className="px-4 py-2" />
 						</tr>
 					</thead>
-					<tbody className="divide-y divide-gray-100 bg-white">
+					<tbody className="divide-y divide-gray-300 bg-white">
 						{items.map((u) => (
 							<tr key={u.id}>
 								<td className="px-4 py-2">{u.id}</td>

@@ -25,7 +25,12 @@ export const RolesPermissions: React.FC = () => {
 			setRoles(r.data ?? []);
 			setPermissions(p.data ?? []);
 		} catch (e: any) {
-			setError(e?.message ?? 'Failed to load');
+			console.error('Failed to load roles and permissions:', e);
+			if (e?.response?.status === 404) {
+				setError('Roles & Permissions API endpoints are not yet implemented on the backend server.');
+			} else {
+				setError(e?.message ?? 'Failed to load');
+			}
 		} finally {
 			setLoading(false);
 		}
@@ -110,9 +115,9 @@ export const RolesPermissions: React.FC = () => {
 	};
 
 	return (
-		<div className="p-4 space-y-6">
+		<div className="w-full space-y-6">
 			<div className="flex items-center justify-between">
-				<h1 className="text-xl font-semibold">Roles & Permissions</h1>
+				<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Roles & Permissions</h1>
 			</div>
 			{loading && <div>Loading...</div>}
 			{error && <div className="text-red-600">{error}</div>}

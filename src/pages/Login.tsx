@@ -111,10 +111,10 @@ export const Login: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen min-h-dvh flex items-center justify-center px-4 py-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div
         dir={i18n.dir()}
-        className="w-full max-w-md rounded-2xl border border-gray-200/70 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card p-6 sm:p-8"
+        className="w-full max-w-md rounded-2xl border border-gray-200/70 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-2xl p-6 sm:p-8"
       >
         <div className="flex flex-col items-center mb-6 text-center">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary-600 text-white shadow-sm mb-3">

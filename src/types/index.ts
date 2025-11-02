@@ -15,13 +15,15 @@ export interface User extends BaseEntity {
 
 // Category types
 export interface Category extends BaseEntity {
-  name: string;
+  name_ar: string;
+  name_en: string;
   status: 'active' | 'inactive';
   deleted_at?: string;
 }
 
 export interface CreateCategoryRequest {
-  name: string;
+  name_ar: string;
+  name_en: string;
   status: 'active' | 'inactive';
 }
 
@@ -29,13 +31,21 @@ export interface UpdateCategoryRequest extends Partial<CreateCategoryRequest> {}
 
 // Program types
 export interface Program extends BaseEntity {
-  name: string;
+  category_id: number;
+  title_ar: string;
+  title_en: string;
+  description_ar?: string;
+  description_en?: string;
   status: 'active' | 'inactive';
   deleted_at?: string;
 }
 
 export interface CreateProgramRequest {
-  name: string;
+  category_id: number;
+  title_ar: string;
+  title_en: string;
+  description_ar: string;
+  description_en: string;
   status: 'active' | 'inactive';
 }
 
@@ -167,8 +177,10 @@ export interface PaginationParams {
 export interface FilterParams {
   search?: string;
   status?: string;
+  type?: string;
   category_id?: number;
   program_id?: number;
+  campaign_id?: number;
   date_from?: string;
   date_to?: string;
 }

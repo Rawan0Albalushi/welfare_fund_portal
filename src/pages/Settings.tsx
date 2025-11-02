@@ -17,10 +17,10 @@ export const Settings: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6">{t('settings.title')}</h1>
+    <div className="w-full">
+      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-6">{t('settings.title')}</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Language Settings */}
         <section className="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 shadow-card">
           <h2 className="text-lg font-semibold mb-3">{t('settings.language')}</h2>

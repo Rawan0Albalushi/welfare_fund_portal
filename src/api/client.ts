@@ -4,7 +4,7 @@ import { config } from '../config/env';
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
   baseURL: config.apiUrl,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -100,8 +100,24 @@ apiClient.interceptors.response.use(
           console.error('API Error:', data.message || 'Unknown error');
       }
     } else if (error.request) {
-      // Network error
-      console.error('Network error:', error.message);
+      // Network error - no response received
+      console.error('❌ [API] Network error - no response from server:', {
+        message: error.message,
+        code: error.code,
+        baseURL: error.config?.baseURL,
+        url: error.config?.url,
+        method: error.config?.method
+      });
+      
+      // Show helpful message
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        console.error('💡 [API] Possible causes:');
+        console.error('   1. Server is not running');
+        console.error('   2. Wrong API URL in .env file');
+        console.error('   3. CORS issue in backend');
+        console.error('   4. Firewall blocking the connection');
+        console.error(`   Current API URL: ${error.config?.baseURL}`);
+      }
     } else {
       // Other error
       console.error('Error:', error.message);

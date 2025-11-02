@@ -3,8 +3,8 @@ import { config } from '../config/env';
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
-  baseURL: config.apiUrl || 'http://192.168.100.105:8000/api/v1/admin',
-  timeout: 10000,
+  baseURL: config.apiUrl || 'http://localhost:8000/api/v1/admin',
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

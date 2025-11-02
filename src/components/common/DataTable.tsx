@@ -92,12 +92,12 @@ export const DataTable = <T extends Record<string, any>>({
 
   return (
     <div className="w-full overflow-hidden rounded-2xl border border-gray-200/70 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card">
-      <div className="max-h-[600px] overflow-auto">
+      <div className="max-h-[600px] overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="sticky top-0 bg-indigoSoft-100/70 dark:bg-gray-800/60 backdrop-blur">
+          <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800/60 backdrop-blur z-10">
             <tr className="text-left text-gray-600 dark:text-gray-300">
               {columns.map((column) => (
-                <th key={String(column.id)} style={{ minWidth: column.minWidth }} className={`px-4 py-3 ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'}`}>
+                <th key={String(column.id)} style={{ minWidth: column.minWidth }} className={`px-2 sm:px-4 py-3 text-xs sm:text-sm ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'}`}>
                   {column.sortable ? (
                     <button onClick={() => handleSort(String(column.id))} className={`inline-flex items-center gap-1 ${sortBy === column.id ? 'font-semibold' : ''}`}>
                       <span>{column.label}</span>
@@ -111,15 +111,15 @@ export const DataTable = <T extends Record<string, any>>({
                 </th>
               ))}
               {(onEdit || onDelete || onView) && (
-                <th className="px-4 py-3 text-center min-w-[120px]">{t('common.actions')}</th>
+                <th className="px-2 sm:px-4 py-3 text-center min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm">{t('common.actions')}</th>
               )}
             </tr>
           </thead>
           <tbody>
             {data.map((row, index) => (
-              <tr key={index} className="border-t border-indigoSoft-200/70 dark:border-gray-800 hover:bg-indigoSoft-100/60 dark:hover:bg-gray-800/30">
+              <tr key={index} className="border-t border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/30">
                 {columns.map((column) => (
-                  <td key={String(column.id)} className={`px-4 py-3 ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'}`}>
+                  <td key={String(column.id)} className={`px-2 sm:px-4 py-3 text-xs sm:text-sm ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'}`}>
                     {(() => {
                       const value = String(column.id).includes('.')
                         ? String(column.id).split('.').reduce((obj: any, key: string) => obj?.[key], row)
@@ -159,11 +159,12 @@ export const DataTable = <T extends Record<string, any>>({
         </table>
       </div>
       {totalCount > 0 && (
-        <div className="flex items-center justify-between px-3 py-2 border-t border-indigoSoft-200 dark:border-gray-800 text-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 py-2 border-t border-gray-300 dark:border-gray-600 text-xs sm:text-sm gap-3">
           <div className="flex items-center gap-2">
-            <span>{t('common.rows_per_page') || 'Rows per page'}</span>
+            <span className="hidden sm:inline">{t('common.rows_per_page') || 'Rows per page'}</span>
+            <span className="sm:hidden">Per page:</span>
             <select
-              className="h-8 px-2 rounded border border-indigoSoft-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+              className="h-8 px-2 rounded border border-indigoSoft-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs sm:text-sm"
               value={rowsPerPage}
               onChange={(e) => onRowsPerPageChange?.(parseInt(e.target.value, 10))}
             >
@@ -174,15 +175,15 @@ export const DataTable = <T extends Record<string, any>>({
           </div>
           <div className="flex items-center gap-2">
             <button
-              className="px-2 py-1 rounded border border-indigoSoft-200 dark:border-gray-700 disabled:opacity-50"
+              className="px-2 py-1 rounded border border-indigoSoft-200 dark:border-gray-700 disabled:opacity-50 text-xs sm:text-sm"
               onClick={() => onPageChange?.(Math.max(0, page - 1))}
               disabled={page <= 0}
             >
-              {t('common.previous') || 'Previous'}
+              {t('common.previous') || 'Prev'}
             </button>
-            <span>{page + 1}</span>
+            <span className="text-xs sm:text-sm">{page + 1}</span>
             <button
-              className="px-2 py-1 rounded border border-indigoSoft-200 dark:border-gray-700 disabled:opacity-50"
+              className="px-2 py-1 rounded border border-indigoSoft-200 dark:border-gray-700 disabled:opacity-50 text-xs sm:text-sm"
               onClick={() => {
                 const maxPage = Math.max(0, Math.ceil(totalCount / rowsPerPage) - 1);
                 onPageChange?.(Math.min(maxPage, page + 1));

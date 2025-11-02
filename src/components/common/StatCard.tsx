@@ -20,19 +20,19 @@ export const StatCard: React.FC<StatCardProps> = ({
 }) => {
 
   return (
-    <div className="rounded-2xl border border-gray-200/70 dark:border-gray-800 p-4 sm:p-5 bg-white dark:bg-gray-900 shadow-card h-full transition-shadow hover:shadow-md">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 h-full">
       <div className="flex items-center justify-between">
-        <div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">{title}</div>
-          <div className="text-2xl font-semibold tracking-tight">{value}</div>
+        <div className="flex-1">
+          <div className="text-xs sm:text-caption text-slate-500 dark:text-slate-400 mb-1">{title}</div>
+          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">{value}</div>
           {trend && (
-            <div className={`text-xs mt-1 ${trend.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-              {trend.isPositive ? '+' : ''}{trend.value}%
+            <div className={`text-sm font-medium ${trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+              {trend.isPositive ? '↗' : '↘'} {trend.isPositive ? '+' : ''}{trend.value}%
             </div>
           )}
         </div>
         {icon && (
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary-600 text-white shadow-sm">
+          <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-sm">
             {icon}
           </div>
         )}

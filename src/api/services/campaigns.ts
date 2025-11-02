@@ -3,8 +3,10 @@ import { type PaginatedResponse, type QueryParams } from '../../types';
 
 export interface Campaign {
 	id: number;
-	title: string;
-  description?: string;
+	title_ar: string;
+	title_en: string;
+  description_ar?: string;
+  description_en?: string;
   goal_amount?: number;
   status: 'draft' | 'active' | 'paused' | 'completed' | 'archived';
   category_id: number;
@@ -12,7 +14,8 @@ export interface Campaign {
   start_date?: string; // ISO date
   end_date?: string;   // ISO date
   target_donors?: number;
-  impact_description?: string;
+  impact_description_ar?: string;
+  impact_description_en?: string;
   campaign_highlights?: string[];
 	created_at?: string;
 	updated_at?: string;
@@ -20,15 +23,18 @@ export interface Campaign {
 
 export interface CreateCampaignRequest {
   category_id: number;
-  title: string;
-  description: string;
+  title_ar: string;
+  title_en: string;
+  description_ar: string;
+  description_en: string;
   goal_amount: number;
   image?: string;
   status?: 'draft' | 'active' | 'paused' | 'completed' | 'archived';
   start_date?: string;
   end_date?: string;
   target_donors?: number;
-  impact_description?: string;
+  impact_description_ar?: string;
+  impact_description_en?: string;
   campaign_highlights?: string[];
 }
 

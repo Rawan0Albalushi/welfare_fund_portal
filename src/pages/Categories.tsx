@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 // Buttons/alerts migrated off MUI
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '../hooks/useCategories';
 import { DataTable, type Column } from '../components/common/DataTable';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
@@ -11,6 +12,7 @@ import { type Category, type CreateCategoryRequest, type UpdateCategoryRequest }
 
 export const Categories: React.FC = () => {
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortBy, setSortBy] = useState<string>('created_at');
@@ -47,7 +49,8 @@ export const Categories: React.FC = () => {
     formState: { errors },
   } = useForm<CreateCategoryRequest>({
     defaultValues: {
-      name: '',
+      name_ar: '',
+      name_en: '',
       status: 'active',
     },
   });
@@ -60,9 +63,15 @@ export const Categories: React.FC = () => {
       sortable: true,
     },
     {
-      id: 'name',
-      label: t('categories.category_name'),
-      minWidth: 200,
+      id: 'name_ar',
+      label: t('categories.category_name') + ' (AR)',
+      minWidth: 150,
+      sortable: true,
+    },
+    {
+      id: 'name_en',
+      label: t('categories.category_name') + ' (EN)',
+      minWidth: 150,
       sortable: true,
     },
     {
@@ -84,13 +93,15 @@ export const Categories: React.FC = () => {
     if (category) {
       setEditingCategory(category);
       reset({
-        name: category.name,
+        name_ar: category.name_ar,
+        name_en: category.name_en,
         status: category.status,
       });
     } else {
       setEditingCategory(null);
       reset({
-        name: '',
+        name_ar: '',
+        name_en: '',
         status: 'active',
       });
     }
@@ -167,41 +178,64 @@ export const Categories: React.FC = () => {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('categories.title')}</h1>
+    <div className="w-full space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t('categories.title')}</h1>
         <button
           onClick={() => handleOpenDialog()}
-          className="h-10 px-4 rounded-lg text-white bg-primary-600 hover:bg-primary-700"
+          className="w-full sm:w-auto h-10 px-4 rounded-xl text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
         >
           + {t('categories.add_category')}
         </button>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-3 mb-4">
-        <div>
-          <label className="block text-sm mb-1">{t('common.search')}</label>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-[220px] h-10 px-3 rounded-lg border border-indigoSoft-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-            placeholder={t('common.search') || 'Search'}
-          />
+      <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  {t('common.search')}
+                </label>
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                  placeholder={t('common.search') || 'Search...'}
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  {t('common.status')}
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                >
+                  <option value="">{t('common.all_statuses')}</option>
+                  <option value="active">{t('common.active')}</option>
+                  <option value="inactive">{t('common.inactive')}</option>
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    setSearch('');
+                    setStatusFilter('');
+                  }}
+                  className="w-full h-11 px-4 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium"
+                >
+                  {t('common.clear_filters')}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm mb-1">{t('common.status')}</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-[180px] h-10 px-3 rounded-lg border border-indigoSoft-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-          >
-            <option value="">All</option>
-            <option value="active">{t('common.active')}</option>
-            <option value="inactive">{t('common.inactive')}</option>
-          </select>
-        </div>
-      </div>
 
       {/* Data Table */}
       {(categoriesData?.data?.length ?? 0) === 0 ? (
@@ -237,20 +271,44 @@ export const Categories: React.FC = () => {
             <form onSubmit={handleSubmit(handleSubmitForm)}>
               <div className="space-y-3">
                 <Controller
-                  name="name"
+                  name="name_ar"
                   control={control}
-                  rules={{ required: t('categories.category_name') + ' is required' }}
+                  rules={{ required: 'الاسم بالعربية مطلوب' }}
                   render={({ field }) => (
                     <div>
-                      <label className="block text-sm mb-1">{t('categories.category_name')}</label>
+                      <label className="block text-sm mb-1 font-semibold">
+                        {t('categories.category_name')} (العربية) <span className="text-rose-500">*</span>
+                      </label>
                       <input
                         {...field}
                         autoFocus
-                        className={`w-full h-10 px-3 rounded-md border ${errors.name ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                        placeholder={t('categories.category_name')}
+                        className={`w-full h-10 px-3 rounded-md border ${errors.name_ar ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                        placeholder="أدخل اسم الفئة بالعربية"
+                        dir="rtl"
                       />
-                      {errors.name && (
-                        <div className="text-xs text-rose-600 mt-1">{String(errors.name.message)}</div>
+                      {errors.name_ar && (
+                        <div className="text-xs text-rose-600 mt-1">{String(errors.name_ar.message)}</div>
+                      )}
+                    </div>
+                  )}
+                />
+                <Controller
+                  name="name_en"
+                  control={control}
+                  rules={{ required: 'English name is required' }}
+                  render={({ field }) => (
+                    <div>
+                      <label className="block text-sm mb-1 font-semibold">
+                        {t('categories.category_name')} (English) <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        {...field}
+                        className={`w-full h-10 px-3 rounded-md border ${errors.name_en ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                        placeholder="Enter category name in English"
+                        dir="ltr"
+                      />
+                      {errors.name_en && (
+                        <div className="text-xs text-rose-600 mt-1">{String(errors.name_en.message)}</div>
                       )}
                     </div>
                   )}

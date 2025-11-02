@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 // Lightweight alert replacement
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useApplications, useUpdateApplicationStatus } from '../hooks/useApplications';
 import { DataTable, type Column } from '../components/common/DataTable';
 import { Loader } from '../components/common/Loader';
@@ -8,7 +9,8 @@ import { EmptyState } from '../components/common/EmptyState';
 import { type StudentRegistration } from '../types';
 
 export const Applications: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { isRTL } = useLanguage();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortBy, setSortBy] = useState<string>('created_at');
@@ -60,7 +62,7 @@ export const Applications: React.FC = () => {
       id: 'program.title',
       label: t('applications.program'),
       minWidth: 150,
-      render: (_, row) => row.program?.title || 'N/A',
+      render: (_, row) => row.program?.title_ar || row.program?.title_en || 'N/A',
     },
     {
       id: 'status',
@@ -116,65 +118,117 @@ export const Applications: React.FC = () => {
   };
 
   if (isLoading) {
-    return <Loader message="Loading applications..." />;
+    return <Loader message="Loading student registration requests..." />;
   }
 
+  // Calculate statistics
+  const applications = applicationsData?.data ?? [];
+  const pendingCount = applications.filter(app => app.status === 'pending').length;
+  const underReviewCount = applications.filter(app => app.status === 'under_review').length;
+  const approvedCount = applications.filter(app => app.status === 'approved').length;
+  const rejectedCount = applications.filter(app => app.status === 'rejected').length;
+
   return (
-    <div>
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6">{t('applications.title')}</h1>
+    <div className="w-full space-y-6">
+      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t('applications.title')}</h1>
 
       {/* Summary Cards */}
-      <div className="flex flex-wrap gap-3 mb-4">
-        <div className="px-3 py-2 rounded-lg bg-amber-500 text-white min-w-[150px]">
-          <div className="text-lg font-semibold">{(applicationsData?.data ?? []).filter(app => app.status === 'pending').length}</div>
-          <div className="text-xs opacity-90">Pending Applications</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Pending Card */}
+        <div className="stat-card">
+          <div className="stat-card-icon bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+            ⏳
+          </div>
+          <div className="stat-card-value">{pendingCount}</div>
+          <div className="stat-card-label">{t('applications.pending')}</div>
+          <div className="stat-card-subtitle">{i18n.language === 'en' ? 'Pending' : ''}</div>
         </div>
-        <div className="px-3 py-2 rounded-lg bg-sky-500 text-white min-w-[150px]">
-          <div className="text-lg font-semibold">{(applicationsData?.data ?? []).filter(app => app.status === 'under_review').length}</div>
-          <div className="text-xs opacity-90">Under Review</div>
+
+        {/* Under Review Card */}
+        <div className="stat-card">
+          <div className="stat-card-icon bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400">
+            🔍
+          </div>
+          <div className="stat-card-value">{underReviewCount}</div>
+          <div className="stat-card-label">{t('applications.under_review')}</div>
+          <div className="stat-card-subtitle">{i18n.language === 'en' ? 'Under Review' : ''}</div>
         </div>
-        <div className="px-3 py-2 rounded-lg bg-emerald-600 text-white min-w-[150px]">
-          <div className="text-lg font-semibold">{(applicationsData?.data ?? []).filter(app => app.status === 'approved').length}</div>
-          <div className="text-xs opacity-90">Approved</div>
+
+        {/* Approved Card */}
+        <div className="stat-card">
+          <div className="stat-card-icon bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+            ✅
+          </div>
+          <div className="stat-card-value">{approvedCount}</div>
+          <div className="stat-card-label">{t('applications.approved')}</div>
+          <div className="stat-card-subtitle">{i18n.language === 'en' ? 'Approved' : ''}</div>
         </div>
-        <div className="px-3 py-2 rounded-lg bg-rose-600 text-white min-w-[150px]">
-          <div className="text-lg font-semibold">{(applicationsData?.data ?? []).filter(app => app.status === 'rejected').length}</div>
-          <div className="text-xs opacity-90">Rejected</div>
+
+        {/* Rejected Card */}
+        <div className="stat-card">
+          <div className="stat-card-icon bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
+            ❌
+          </div>
+          <div className="stat-card-value">{rejectedCount}</div>
+          <div className="stat-card-label">{t('applications.rejected')}</div>
+          <div className="stat-card-subtitle">{i18n.language === 'en' ? 'Rejected' : ''}</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-4 items-end">
-        <div>
-          <label className="block text-sm mb-1">{t('common.search')}</label>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-[220px] h-10 px-3 rounded-lg border border-indigoSoft-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-            placeholder={t('common.search') || 'Search'}
-          />
+      <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  {t('common.search')}
+                </label>
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                  placeholder={t('common.search') || 'Search...'}
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  {t('common.status')}
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="">{t('applications.all_statuses')}</option>
+                  <option value="pending">{t('applications.pending')}</option>
+                  <option value="under_review">{t('applications.under_review')}</option>
+                  <option value="approved">{t('applications.approved')}</option>
+                  <option value="rejected">{t('applications.rejected')}</option>
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    setSearch('');
+                    setStatusFilter('');
+                  }}
+                  className="w-full h-11 px-4 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium"
+                >
+                  {t('applications.clear_filters')}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm mb-1">{t('common.status')}</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-[180px] h-10 px-3 rounded-lg border border-indigoSoft-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-          >
-            <option value="">All</option>
-            <option value="pending">Pending</option>
-            <option value="under_review">Under Review</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-      </div>
 
       {/* Data Table */}
       {(applicationsData?.data ?? []).length === 0 ? (
         <EmptyState
           title={t('applications.no_applications')}
-          description="No applications found matching your criteria"
+          description="No student registration requests found matching your criteria"
         />
       ) : (
         <DataTable
@@ -193,41 +247,79 @@ export const Applications: React.FC = () => {
         />
       )}
 
-      {/* Status Update Modal (Tailwind) */}
+      {/* Status Update Modal */}
       {statusDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleCloseStatusDialog} />
-          <div className="relative w-full max-w-md rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card p-4">
-            <h3 className="text-lg font-semibold mb-2">{t('applications.update_status')}</h3>
-            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-              <div>Application ID: {statusDialog.registration_id}</div>
-              <div>Student: {statusDialog.personal_json?.name || statusDialog.student_name || 'N/A'}</div>
-              <div>Program: {statusDialog.program?.title || 'N/A'}</div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleCloseStatusDialog} />
+          <div className="relative w-full max-w-md rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-indigo-600 p-6">
+              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="relative flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl">
+                  ✏️
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-white">{t('applications.update_status')}</h3>
+                  <p className="text-primary-100 text-sm">{i18n.language === 'en' ? 'Update Application Status' : ''}</p>
+                </div>
+              </div>
             </div>
-            <div className="mt-3">
-              <label className="block text-sm mb-1">New Status</label>
-              <select
-                value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value)}
-                className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-              >
-                <option value="pending">Pending</option>
-                <option value="under_review">Under Review</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-              </select>
-            </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <button onClick={handleCloseStatusDialog} className="h-9 px-3 rounded-md border border-gray-200 dark:border-gray-700">
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={handleUpdateStatus}
-                disabled={updateStatusMutation.isPending}
-                className="h-9 px-3 rounded-md text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
-              >
-                {updateStatusMutation.isPending ? t('common.loading') : t('common.save')}
-              </button>
+
+            {/* Modal Content */}
+            <div className="p-6 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900">
+              <div className="space-y-4 mb-4">
+                <div className="space-y-1">
+                  <div className="text-sm text-slate-500 dark:text-slate-400">{t('applications.registration_id_label')}</div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    {statusDialog.registration_id}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm text-slate-500 dark:text-slate-400">{t('applications.student_name_label')}</div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    {statusDialog.personal_json?.name || statusDialog.student_name || 'N/A'}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm text-slate-500 dark:text-slate-400">{t('applications.program_label')}</div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    {isRTL ? (statusDialog.program?.title_ar || statusDialog.program?.title_en) : (statusDialog.program?.title_en || statusDialog.program?.title_ar) || 'N/A'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('applications.new_status')}</label>
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                >
+                  <option value="pending">{t('applications.pending')}</option>
+                  <option value="under_review">{t('applications.under_review')}</option>
+                  <option value="approved">{t('applications.approved')}</option>
+                  <option value="rejected">{t('applications.rejected')}</option>
+                </select>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={handleCloseStatusDialog}
+                  className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={handleUpdateStatus}
+                  disabled={updateStatusMutation.isPending}
+                  className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl hover:from-primary-700 hover:to-primary-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                >
+                  {updateStatusMutation.isPending ? t('common.loading') : t('common.save')}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -235,44 +327,112 @@ export const Applications: React.FC = () => {
 
       {/* View Details Modal */}
       {viewDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setViewDialog(null)} />
-          <div className="relative w-full max-w-2xl rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card p-4">
-            <h3 className="text-lg font-semibold mb-3">Application Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <div className="text-gray-500 mb-1">Student</div>
-                <div className="font-medium">{viewDialog.personal_json?.name}</div>
-              </div>
-              <div>
-                <div className="text-gray-500 mb-1">Program</div>
-                <div className="font-medium">{viewDialog.program?.title || 'N/A'}</div>
-              </div>
-              <div>
-                <div className="text-gray-500 mb-1">Status</div>
-                <div className="font-medium">{viewDialog.status}</div>
-              </div>
-              <div>
-                <div className="text-gray-500 mb-1">Submitted</div>
-                <div className="font-medium">{new Date(viewDialog.created_at).toLocaleString()}</div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setViewDialog(null)} />
+          <div className="relative w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-indigo-600 p-6">
+              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="relative flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl">
+                  📋
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-white">{t('applications.registration_details')}</h3>
+                  <p className="text-primary-100 text-sm">{i18n.language === 'en' ? 'Student Registration Details' : ''}</p>
+                </div>
               </div>
             </div>
-            <div className="mt-4">
-              <div className="text-gray-500 mb-1">Personal Info</div>
-              <pre className="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded-md overflow-auto max-h-64">{JSON.stringify(viewDialog.personal_json, null, 2)}</pre>
-            </div>
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <div className="text-gray-500 mb-1">Academic</div>
-                <pre className="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded-md overflow-auto max-h-64">{JSON.stringify(viewDialog.academic_json, null, 2)}</pre>
+
+            {/* Modal Content - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-1">
+                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('applications.student_name_label')}</div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    {viewDialog.personal_json?.name || viewDialog.student_name || 'N/A'}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('applications.program_label')}</div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    {isRTL ? (viewDialog.program?.title_ar || viewDialog.program?.title_en) : (viewDialog.program?.title_en || viewDialog.program?.title_ar) || 'N/A'}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('applications.status_label')}</div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    {viewDialog.status}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('applications.submitted_date_label')}</div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    {new Date(viewDialog.created_at).toLocaleString(isRTL ? 'ar-SA' : 'en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className="text-gray-500 mb-1">Financial</div>
-                <pre className="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded-md overflow-auto max-h-64">{JSON.stringify(viewDialog.financial_json, null, 2)}</pre>
+
+              {/* Personal Info */}
+              <div className="mb-4">
+                <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('applications.personal_info')}</div>
+                <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                  <div className="text-xs font-mono text-slate-600 dark:text-slate-400 whitespace-pre-wrap break-words">
+                    {JSON.stringify({
+                      name: viewDialog.student_name || viewDialog.personal_json?.name,
+                      email: viewDialog.email || viewDialog.personal_json?.email,
+                      phone: viewDialog.phone || viewDialog.personal_json?.phone,
+                      student_id: viewDialog.student_id,
+                    }, null, 2)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Academic & Financial Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('applications.academic_info')}</div>
+                  <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <div className="text-xs font-mono text-slate-600 dark:text-slate-400 whitespace-pre-wrap break-words">
+                      {JSON.stringify({
+                        university: viewDialog.university || viewDialog.academic_json?.university,
+                        college: viewDialog.college,
+                        major: viewDialog.major || viewDialog.academic_json?.major,
+                        academic_year: viewDialog.academic_year,
+                        gpa: viewDialog.gpa || viewDialog.academic_json?.gpa,
+                      }, null, 2)}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('applications.financial_info')}</div>
+                  <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <div className="text-xs font-mono text-slate-600 dark:text-slate-400 whitespace-pre-wrap break-words">
+                      {JSON.stringify({
+                        family_income: viewDialog.family_income || viewDialog.financial_json?.income,
+                        family_members: viewDialog.family_members,
+                        support_needed: viewDialog.support_needed,
+                      }, null, 2)}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex justify-end mt-4">
-              <button onClick={() => setViewDialog(null)} className="h-9 px-3 rounded-md border border-gray-200 dark:border-gray-700">Close</button>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-3 p-6 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-t border-slate-200 dark:border-slate-700">
+              <button
+                onClick={() => setViewDialog(null)}
+                className="px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+              >
+                {t('applications.close')}
+              </button>
             </div>
           </div>
         </div>

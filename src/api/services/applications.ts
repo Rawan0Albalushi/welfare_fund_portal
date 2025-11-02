@@ -3,14 +3,14 @@ import { type StudentRegistration, type PaginatedResponse, type QueryParams } fr
 
 export const applicationsService = {
   getApplications: async (params?: QueryParams): Promise<PaginatedResponse<StudentRegistration>> => {
-    try {
-      // Remove empty strings/nulls from params to prevent over-filtering on backend
-      const cleanedParams = params
-        ? Object.fromEntries(
-            Object.entries(params).filter(([_, value]) => value !== '' && value !== undefined && value !== null)
-          )
-        : undefined;
+    // Remove empty strings/nulls from params to prevent over-filtering on backend
+    const cleanedParams = params
+      ? Object.fromEntries(
+          Object.entries(params).filter(([_, value]) => value !== '' && value !== undefined && value !== null)
+        )
+      : undefined;
 
+    try {
       const response = await apiClient.get('/applications', { params: cleanedParams });
       const payload = response.data?.data ?? response.data;
       

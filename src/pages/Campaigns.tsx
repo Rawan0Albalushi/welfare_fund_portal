@@ -1,10 +1,14 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../contexts/LanguageContext';
 import { campaignsService } from '../api/services/campaigns';
 import { useCategories } from '../hooks/useCategories';
 import { DataTable } from '../components/common/DataTable';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 
 export const Campaigns: React.FC = () => {
+	const { t } = useTranslation();
+	const { isRTL } = useLanguage();
 	const [loading, setLoading] = React.useState(false);
 	const [items, setItems] = React.useState<any[]>([]);
 	const [error, setError] = React.useState<string | null>(null);
@@ -13,15 +17,18 @@ export const Campaigns: React.FC = () => {
 	const [deleteTarget, setDeleteTarget] = React.useState<any | null>(null);
 	const [form, setForm] = React.useState({
 		category_id: '' as unknown as number | '',
-		title: '',
-		description: '',
+		title_ar: '',
+		title_en: '',
+		description_ar: '',
+		description_en: '',
 		goal_amount: '' as unknown as number | '',
 		image: '',
 		status: 'draft',
 		start_date: '',
 		end_date: '',
 		target_donors: '' as unknown as number | '',
-		impact_description: '',
+		impact_description_ar: '',
+		impact_description_en: '',
 		campaign_highlights: '' as unknown as string,
 	});
 	const [formError, setFormError] = React.useState<string | null>(null);
@@ -70,15 +77,18 @@ export const Campaigns: React.FC = () => {
 		setEditingId(null);
 		setForm({
 			category_id: '' as unknown as number | '',
-			title: '',
-			description: '',
+			title_ar: '',
+			title_en: '',
+			description_ar: '',
+			description_en: '',
 			goal_amount: '' as unknown as number | '',
 			image: '',
 			status: 'draft',
 			start_date: '',
 			end_date: '',
 			target_donors: '' as unknown as number | '',
-			impact_description: '',
+			impact_description_ar: '',
+			impact_description_en: '',
 			campaign_highlights: '' as unknown as string,
 		});
 		setIsModalOpen(true);
@@ -88,15 +98,18 @@ export const Campaigns: React.FC = () => {
 		setEditingId(c.id);
 		setForm({
 			category_id: c.category_id ?? ('' as unknown as number | ''),
-			title: c.title ?? '',
-			description: c.description ?? '',
+			title_ar: c.title_ar ?? '',
+			title_en: c.title_en ?? '',
+			description_ar: c.description_ar ?? '',
+			description_en: c.description_en ?? '',
 			goal_amount: (c.goal_amount ?? '') as unknown as number | '',
 			image: c.image ?? '',
 			status: c.status ?? 'draft',
 			start_date: c.start_date ?? '',
 			end_date: c.end_date ?? '',
 			target_donors: (c.target_donors ?? '') as unknown as number | '',
-			impact_description: c.impact_description ?? '',
+			impact_description_ar: c.impact_description_ar ?? '',
+			impact_description_en: c.impact_description_en ?? '',
 			campaign_highlights: Array.isArray(c.campaign_highlights) ? c.campaign_highlights.join(', ') : '',
 		});
 		setIsModalOpen(true);
@@ -108,11 +121,17 @@ export const Campaigns: React.FC = () => {
 			setLoading(true);
 			setFormError(null);
 			// Validation
-			if (form.title.trim().length === 0 || form.title.trim().length > 255) {
-				throw new Error('Title is required and must be ≤ 255 characters');
+			if (form.title_ar.trim().length === 0 || form.title_ar.trim().length > 255) {
+				throw new Error('العنوان بالعربية مطلوب ويجب أن يكون ≤ 255 حرف');
 			}
-			if (form.description.trim().length === 0) {
-				throw new Error('Description is required');
+			if (form.title_en.trim().length === 0 || form.title_en.trim().length > 255) {
+				throw new Error('English title is required and must be ≤ 255 characters');
+			}
+			if (form.description_ar.trim().length === 0) {
+				throw new Error('الوصف بالعربية مطلوب');
+			}
+			if (form.description_en.trim().length === 0) {
+				throw new Error('English description is required');
 			}
 			if (form.category_id === '' || Number(form.category_id) <= 0) {
 				throw new Error('Category is required');
@@ -132,15 +151,18 @@ export const Campaigns: React.FC = () => {
 			}
 			const payload = {
 				category_id: Number(form.category_id),
-				title: form.title.trim(),
-				description: form.description.trim(),
+				title_ar: form.title_ar.trim(),
+				title_en: form.title_en.trim(),
+				description_ar: form.description_ar.trim(),
+				description_en: form.description_en.trim(),
 				goal_amount: Number(form.goal_amount),
 				image: form.image?.trim() || undefined,
 				status: form.status as 'draft' | 'active' | 'paused' | 'completed' | 'archived',
 				start_date: form.start_date || undefined,
 				end_date: form.end_date || undefined,
 				target_donors: form.target_donors === '' ? undefined : Number(form.target_donors),
-				impact_description: form.impact_description?.trim() || undefined,
+				impact_description_ar: form.impact_description_ar?.trim() || undefined,
+				impact_description_en: form.impact_description_en?.trim() || undefined,
 				campaign_highlights: (form.campaign_highlights || '')
 					.split(',')
 					.map((s) => s.trim())
@@ -175,59 +197,96 @@ export const Campaigns: React.FC = () => {
 	};
 
 	return (
-		<div className="p-4">
-			<div className="flex items-center justify-between mb-4 gap-2">
-				<h1 className="text-xl font-semibold">Campaigns</h1>
-				<div className="flex items-center gap-2">
-					<form onSubmit={handleSearch} className="flex items-center gap-2">
-						<input
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
-							placeholder="Search..."
-							className="h-9 rounded-md border border-gray-300 px-3 focus:outline-none focus:ring-1 focus:ring-primary-500"
-						/>
-						<select
-							value={statusFilter}
-							onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
-							className="h-9 rounded-md border border-gray-300 px-2"
-						>
-							<option value="">All statuses</option>
-							<option value="draft">Draft</option>
-							<option value="active">Active</option>
-							<option value="paused">Paused</option>
-							<option value="completed">Completed</option>
-							<option value="archived">Archived</option>
-						</select>
-						<select
-							value={categoryFilter}
-							onChange={(e) => { setCategoryFilter(e.target.value); setPage(0); }}
-							className="h-9 rounded-md border border-gray-300 px-2"
-						>
-							<option value="">All categories</option>
-							{(categoriesData?.data || []).map((cat) => (
-								<option key={cat.id} value={String(cat.id)}>{cat.name}</option>
-							))}
-						</select>
-						<button type="submit" className="h-9 px-3 rounded-md bg-primary-600 text-white">Search</button>
-					</form>
-					<button onClick={openCreate} className="h-9 px-3 bg-primary-600 text-white rounded-md">New</button>
+		<div className="w-full space-y-6">
+			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+				<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t('campaigns.title')}</h1>
+				<button
+					onClick={openCreate}
+					className="w-full sm:w-auto h-10 px-4 rounded-xl text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+				>
+					+ New Campaign
+				</button>
+			</div>
+
+			{error && <div className="text-red-600 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">{error}</div>}
+
+			{/* Filters */}
+			<div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
+					<div className="p-6">
+						<form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+							<div className="space-y-2">
+								<label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">{t('campaigns.search')}</label>
+								<input
+									value={search}
+									onChange={(e) => setSearch(e.target.value)}
+									placeholder={t('common.search') || 'Search...'}
+									className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+									dir={isRTL ? 'rtl' : 'ltr'}
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">{t('campaigns.status')}</label>
+								<select
+									value={statusFilter}
+									onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
+									className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+									dir={isRTL ? 'rtl' : 'ltr'}
+								>
+									<option value="">{t('campaigns.all_statuses')}</option>
+									<option value="draft">Draft</option>
+									<option value="active">{t('common.active')}</option>
+									<option value="paused">Paused</option>
+									<option value="completed">Completed</option>
+									<option value="archived">Archived</option>
+								</select>
+							</div>
+
+							<div className="space-y-2">
+								<label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">{t('campaigns.category')}</label>
+								<select
+									value={categoryFilter}
+									onChange={(e) => { setCategoryFilter(e.target.value); setPage(0); }}
+									className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+									dir={isRTL ? 'rtl' : 'ltr'}
+								>
+									<option value="">{t('campaigns.all_categories')}</option>
+									{(categoriesData?.data || []).map((cat) => (
+										<option key={cat.id} value={String(cat.id)}>
+											{isRTL ? (cat.name_ar || cat.name_en) : (cat.name_en || cat.name_ar)}
+										</option>
+									))}
+								</select>
+							</div>
+
+							<div className="flex items-end gap-2">
+								<button
+									type="submit"
+									className="flex-1 h-11 px-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+								>
+									{t('campaigns.search_button')}
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setSearch('');
+										setStatusFilter('');
+										setCategoryFilter('');
+										setPage(0);
+									}}
+									className="h-11 px-4 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium"
+								>
+									{t('campaigns.clear_button')}
+								</button>
+							</div>
+						</form>
+					</div>
 				</div>
-			</div>
-			{error && <div className="text-red-600 mb-2">{error}</div>}
-			<div className="mb-2 text-sm text-gray-600">
-				{total > 0 ? (
-					<span>
-						Showing {Math.min(total, page * rowsPerPage + 1)}-
-						{Math.min(total, (page + 1) * rowsPerPage)} of {total}
-					</span>
-				) : (
-					<span>No results</span>
-				)}
-			</div>
 			<DataTable
 				columns={[
 					{ id: 'id', label: 'ID', minWidth: 60 },
-					{ id: 'title', label: 'Title', minWidth: 200 },
+					{ id: 'title_ar', label: 'العنوان (AR)', minWidth: 150 },
+					{ id: 'title_en', label: 'Title (EN)', minWidth: 150 },
 					{ id: 'status', label: 'Status', minWidth: 120 },
 					{ id: 'goal_amount', label: 'Goal', minWidth: 100, render: (v) => (v != null ? Number(v).toLocaleString() : '-') },
 					{ id: 'start_date', label: 'Start', minWidth: 120, render: (v) => (v ? new Date(v).toLocaleDateString() : '-') },
@@ -264,7 +323,7 @@ export const Campaigns: React.FC = () => {
 									>
 										<option value="">Select category</option>
 										{(categoriesData?.data || []).map((cat) => (
-											<option key={cat.id} value={cat.id}>{cat.name}</option>
+											<option key={cat.id} value={cat.id}>{cat.name_ar} - {cat.name_en}</option>
 										))}
 									</select>
 								</div>
@@ -280,14 +339,26 @@ export const Campaigns: React.FC = () => {
 								</div>
 							</div>
 
-							<div>
-								<label className="block text-sm mb-1">Title</label>
-								<input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div>
+									<label className="block text-sm mb-1 font-semibold">العنوان (العربية) <span className="text-rose-500">*</span></label>
+									<input value={form.title_ar} onChange={(e) => setForm({ ...form, title_ar: e.target.value })} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="أدخل العنوان بالعربية" dir="rtl" />
+								</div>
+								<div>
+									<label className="block text-sm mb-1 font-semibold">Title (English) <span className="text-rose-500">*</span></label>
+									<input value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Enter title in English" dir="ltr" />
+								</div>
 							</div>
 
-							<div>
-								<label className="block text-sm mb-1">Description</label>
-								<textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div>
+									<label className="block text-sm mb-1 font-semibold">الوصف (العربية) <span className="text-rose-500">*</span></label>
+									<textarea value={form.description_ar} onChange={(e) => setForm({ ...form, description_ar: e.target.value })} rows={3} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="أدخل الوصف بالعربية" dir="rtl" />
+								</div>
+								<div>
+									<label className="block text-sm mb-1 font-semibold">Description (English) <span className="text-rose-500">*</span></label>
+									<textarea value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} rows={3} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Enter description in English" dir="ltr" />
+								</div>
 							</div>
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -319,13 +390,18 @@ export const Campaigns: React.FC = () => {
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div>
-									<label className="block text-sm mb-1">Highlights (comma-separated)</label>
-									<input value={form.campaign_highlights as any as string} onChange={(e) => setForm({ ...form, campaign_highlights: e.target.value as any })} placeholder="e.g. Secure donations, Transparent reports" className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+									<label className="block text-sm mb-1">التأثير (العربية) - اختياري</label>
+									<textarea value={form.impact_description_ar} onChange={(e) => setForm({ ...form, impact_description_ar: e.target.value })} rows={2} className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="وصف التأثير بالعربية" dir="rtl" />
 								</div>
 								<div>
-									<label className="block text-sm mb-1">Impact Description</label>
-									<textarea value={form.impact_description} onChange={(e) => setForm({ ...form, impact_description: e.target.value })} rows={2} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+									<label className="block text-sm mb-1">Impact (English) - Optional</label>
+									<textarea value={form.impact_description_en} onChange={(e) => setForm({ ...form, impact_description_en: e.target.value })} rows={2} className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Impact description in English" dir="ltr" />
 								</div>
+							</div>
+
+							<div>
+								<label className="block text-sm mb-1">Highlights (comma-separated)</label>
+								<input value={form.campaign_highlights as any as string} onChange={(e) => setForm({ ...form, campaign_highlights: e.target.value as any })} placeholder="e.g. Secure donations, Transparent reports" className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" />
 							</div>
 
 							<div className="flex items-center justify-end gap-2 pt-2">
@@ -340,7 +416,7 @@ export const Campaigns: React.FC = () => {
 			<ConfirmDialog
 				open={!!deleteTarget}
 				title="Delete Campaign"
-				message={`Are you sure you want to delete "${deleteTarget?.title ?? ''}"? This action cannot be undone.`}
+				message={`Are you sure you want to delete "${deleteTarget?.title_ar ?? deleteTarget?.title_en ?? ''}"? This action cannot be undone.`}
 				confirmText="Delete"
 				cancelText="Cancel"
 				severity="error"

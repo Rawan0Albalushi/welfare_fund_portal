@@ -80,15 +80,15 @@ export const Dashboard: React.FC = () => {
   }
 
   const renderStatsSkeleton = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {Array.from({ length: 4 }).map((_, idx) => (
-        <div key={idx} className="rounded-2xl border border-gray-200/70 dark:border-gray-800 p-4 sm:p-5 bg-white dark:bg-gray-900 shadow-card">
+        <div key={idx} className="rounded-xl border border-slate-200 dark:border-slate-700 p-6 bg-white dark:bg-slate-800 shadow-sm">
           <div className="animate-pulse flex items-center justify-between">
-            <div className="space-y-2 w-full">
-              <div className="h-3 w-24 bg-gray-200 dark:bg-gray-800 rounded" />
-              <div className="h-7 w-32 bg-gray-200 dark:bg-gray-800 rounded" />
+            <div className="space-y-3 flex-1">
+              <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700 rounded" />
+              <div className="h-8 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
             </div>
-            <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-800" />
+            <div className="w-12 h-12 rounded-lg bg-slate-200 dark:bg-slate-700" />
           </div>
         </div>
       ))}
@@ -134,8 +134,8 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6">{t('dashboard.title')}</h1>
+    <div className="w-full">
+      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-6">{t('dashboard.title')}</h1>
       
       {/* Debug Info Panel */}
       <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
@@ -164,6 +164,38 @@ export const Dashboard: React.FC = () => {
             <p className="text-red-700 dark:text-red-300 text-sm mb-2">
               {(statsError as any)?.message || 'حدث خطأ غير متوقع'}
             </p>
+            
+            {/* Special handling for Network errors */}
+            {((statsError as any)?.code === 'ERR_NETWORK' || (statsError as any)?.message === 'Network Error') && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-3">
+                <h4 className="text-amber-800 dark:text-amber-200 font-semibold mb-2">🔌 خطأ في الاتصال بالخادم</h4>
+                <p className="text-amber-700 dark:text-amber-300 text-sm mb-3">
+                  لا يمكن الاتصال بالخادم. يرجى التحقق من:
+                </p>
+                <ul className="list-disc list-inside text-amber-700 dark:text-amber-300 text-sm mb-3 space-y-1">
+                  <li>أن الخادم يعمل على العنوان: <code className="bg-amber-100 dark:bg-amber-900/50 px-1 rounded">{(statsError as any)?.config?.baseURL || 'غير محدد'}</code></li>
+                  <li>أن عنوان الـ API صحيح في ملف .env</li>
+                  <li>أنه لا يوجد جدار ناري يحجب الاتصال</li>
+                  <li>أن إعدادات CORS في الباكند صحيحة</li>
+                </ul>
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-3 mb-3">
+                  <p className="text-blue-800 dark:text-blue-200 text-sm font-semibold mb-1">كيفية الحل:</p>
+                  <ol className="list-decimal list-inside text-blue-700 dark:text-blue-300 text-xs space-y-1">
+                    <li>تأكد من تشغيل الخادم: <code className="bg-blue-100 dark:bg-blue-900/50 px-1 rounded">php artisan serve --host=0.0.0.0</code></li>
+                    <li>أنشئ ملف .env في جذر المشروع واكتب فيه:
+                      <pre className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded mt-1 text-xs">VITE_API_URL=http://localhost:8000/api/v1/admin</pre>
+                    </li>
+                    <li>أوقف التطبيق وأعد تشغيله بعد تعديل ملف .env</li>
+                  </ol>
+                </div>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-amber-600 text-white rounded text-sm hover:bg-amber-700 transition-colors"
+                >
+                  إعادة المحاولة
+                </button>
+              </div>
+            )}
             
             {/* Special handling for 500 errors */}
             {(statsError as any)?.response?.status === 500 && (
@@ -218,18 +250,41 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatCard title={t('dashboard.total_donations')} value={stats?.total_donations ?? 0} icon={<span>💰</span>} />
-          <StatCard title={t('dashboard.total_amount')} value={formatCurrency(stats?.total_amount ?? 0)} icon={<span>📈</span>} />
-          <StatCard title={t('dashboard.active_programs')} value={stats?.active_programs ?? 0} icon={<span>🎓</span>} />
-          <StatCard title={t('dashboard.pending_applications')} value={stats?.pending_applications ?? 0} icon={<span>📝</span>} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+          <StatCard 
+            title={t('dashboard.total_donations')} 
+            value={stats?.total_donations ?? 0} 
+            icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>} 
+          />
+          <StatCard 
+            title={t('dashboard.total_amount')} 
+            value={formatCurrency(stats?.total_amount ?? 0)} 
+            icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>} 
+          />
+          <StatCard 
+            title={t('dashboard.active_programs')} 
+            value={stats?.active_programs ?? 0} 
+            icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>} 
+          />
+          <StatCard 
+            title={t('dashboard.pending_applications')} 
+            value={stats?.pending_applications ?? 0} 
+            icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>} 
+          />
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Donations */}
-        <section className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200/70 dark:border-gray-800 p-4 shadow-card">
-          <h2 className="text-lg font-semibold mb-3">{t('dashboard.recent_donations')}</h2>
+        <section className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+              <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+            </div>
+            <h2 className="text-heading-3 text-slate-900 dark:text-slate-100">{t('dashboard.recent_donations')}</h2>
+          </div>
           {donationsLoading ? (
             <Loader />
           ) : donationsError ? (
@@ -258,10 +313,10 @@ export const Dashboard: React.FC = () => {
           ) : !donationsData || donationsData.length === 0 ? (
             <EmptyState title="No donations found" description="No recent donations to display" />
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-200/70 dark:border-gray-800">
+            <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-indigoSoft-200 dark:border-gray-800">
+                  <tr className="text-left text-slate-600 dark:text-slate-400 border-b border-gray-300 dark:border-gray-600 bg-slate-50 dark:bg-slate-800/50">
                     <th className="py-2 pr-4">{t('donations.donor_name')}</th>
                     <th className="py-2 pr-4">{t('donations.amount')}</th>
                     <th className="py-2 pr-4">{t('donations.donation_status')}</th>
@@ -272,7 +327,7 @@ export const Dashboard: React.FC = () => {
                   {donationsData && Array.isArray(donationsData) ? donationsData.map((donation) => {
                     try {
                       return (
-                        <tr key={donation?.id || Math.random()} className="border-b last:border-0 border-indigoSoft-200/70 dark:border-gray-800">
+                        <tr key={donation?.id || Math.random()} className="border-b last:border-0 border-gray-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                           <td className="py-2 pr-4">{donation?.donor_name || 'N/A'}</td>
                           <td className="py-2 pr-4">{formatCurrency(donation?.amount || 0)}</td>
                           <td className="py-2 pr-4">{getStatusPill(donation?.status || 'unknown')}</td>
@@ -290,9 +345,16 @@ export const Dashboard: React.FC = () => {
           )}
         </section>
 
-        {/* Recent Applications */}
-        <section className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200/70 dark:border-gray-800 p-4 shadow-card">
-          <h2 className="text-lg font-semibold mb-3">{t('dashboard.recent_applications')}</h2>
+        {/* Recent Student Registration Requests */}
+        <section className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+              <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+              </svg>
+            </div>
+            <h2 className="text-heading-3 text-slate-900 dark:text-slate-100">{t('dashboard.recent_applications')}</h2>
+          </div>
           {applicationsLoading ? (
             <Loader />
           ) : applicationsError ? (
@@ -319,12 +381,12 @@ export const Dashboard: React.FC = () => {
               <EmptyState title={t('errors.server_error')} description={(applicationsError as any)?.message} />
             )
           ) : !applicationsData || applicationsData.length === 0 ? (
-            <EmptyState title="No applications found" description="No recent applications to display" />
+            <EmptyState title="No student registration requests found" description="No recent student registration requests to display" />
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-200/70 dark:border-gray-800">
+            <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-indigoSoft-200 dark:border-gray-800">
+                  <tr className="text-left text-slate-600 dark:text-slate-400 border-b border-gray-300 dark:border-gray-600 bg-slate-50 dark:bg-slate-800/50">
                     <th className="py-2 pr-4">{t('applications.student_name')}</th>
                     <th className="py-2 pr-4">{t('applications.program')}</th>
                     <th className="py-2 pr-4">{t('applications.application_status')}</th>
@@ -335,9 +397,9 @@ export const Dashboard: React.FC = () => {
                   {applicationsData && Array.isArray(applicationsData) ? applicationsData.map((application) => {
                     try {
                       return (
-                        <tr key={application?.id || Math.random()} className="border-b last:border-0 border-indigoSoft-200/70 dark:border-gray-800">
+                        <tr key={application?.id || Math.random()} className="border-b last:border-0 border-gray-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="py-2 pr-4">{application?.student_name || application?.personal_json?.name || 'N/A'}</td>
-                          <td className="py-2 pr-4">{application?.program?.title || 'N/A'}</td>
+                          <td className="py-2 pr-4">{application?.program?.title_ar || application?.program?.title_en || application?.program?.title || 'N/A'}</td>
                           <td className="py-2 pr-4">{getStatusPill(application?.status || 'unknown')}</td>
                           <td className="py-2 pr-4">{application?.created_at ? new Date(application.created_at).toLocaleDateString() : 'N/A'}</td>
                         </tr>

@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 // Buttons/alerts migrated off MUI
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../contexts/LanguageContext';
 import { usePrograms, useCreateProgram, useUpdateProgram, useDeleteProgram } from '../hooks/usePrograms';
+import { useCategories } from '../hooks/useCategories';
 import { DataTable, type Column } from '../components/common/DataTable';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { Loader } from '../components/common/Loader';
@@ -11,6 +13,7 @@ import { type Program, type CreateProgramRequest, type UpdateProgramRequest } fr
 
 export const Programs: React.FC = () => {
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortBy, setSortBy] = useState<string>('created_at');
@@ -37,7 +40,7 @@ export const Programs: React.FC = () => {
     status: statusFilter,
   });
 
-  // No categories needed
+  const { data: categoriesData } = useCategories({ per_page: 100 });
 
   const createProgramMutation = useCreateProgram();
   const updateProgramMutation = useUpdateProgram();
@@ -50,7 +53,11 @@ export const Programs: React.FC = () => {
     formState: { errors },
   } = useForm<CreateProgramRequest>({
     defaultValues: {
-      name: '',
+      category_id: 0,
+      title_ar: '',
+      title_en: '',
+      description_ar: '',
+      description_en: '',
       status: 'active',
     },
   });
@@ -63,9 +70,15 @@ export const Programs: React.FC = () => {
       sortable: true,
     },
     {
-      id: 'name',
-      label: t('programs.program_title'),
-      minWidth: 200,
+      id: 'title_ar',
+      label: t('programs.program_title') + ' (AR)',
+      minWidth: 150,
+      sortable: true,
+    },
+    {
+      id: 'title_en',
+      label: t('programs.program_title') + ' (EN)',
+      minWidth: 150,
       sortable: true,
     },
     {
@@ -87,13 +100,21 @@ export const Programs: React.FC = () => {
     if (program) {
       setEditingProgram(program);
       reset({
-        name: (program as any).name || (program as any).title || '',
-        status: (program as any).status,
+        category_id: program.category_id,
+        title_ar: program.title_ar,
+        title_en: program.title_en,
+        description_ar: program.description_ar || '',
+        description_en: program.description_en || '',
+        status: program.status,
       });
     } else {
       setEditingProgram(null);
       reset({
-        name: '',
+        category_id: 0,
+        title_ar: '',
+        title_en: '',
+        description_ar: '',
+        description_en: '',
         status: 'active',
       });
     }
@@ -166,42 +187,64 @@ export const Programs: React.FC = () => {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('programs.title')}</h1>
+    <div className="w-full space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t('programs.title')}</h1>
         <button
           onClick={() => handleOpenDialog()}
-          className="h-10 px-4 rounded-lg text-white bg-primary-600 hover:bg-primary-700"
+          className="w-full sm:w-auto h-10 px-4 rounded-xl text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
         >
           + {t('programs.add_program')}
         </button>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-3 mb-4">
-        <div>
-          <label className="block text-sm mb-1">{t('common.search')}</label>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-[220px] h-10 px-3 rounded-lg border border-indigoSoft-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-            placeholder={t('common.search') || 'Search'}
-          />
+      <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  {t('common.search')}
+                </label>
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                  placeholder={t('common.search') || 'Search...'}
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  {t('common.status')}
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                >
+                  <option value="">{t('common.all_statuses')}</option>
+                  <option value="active">{t('common.active')}</option>
+                  <option value="inactive">{t('common.inactive')}</option>
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    setSearch('');
+                    setStatusFilter('');
+                  }}
+                  className="w-full h-11 px-4 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium"
+                >
+                  {t('common.clear_filters')}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm mb-1">{t('common.status')}</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-[180px] h-10 px-3 rounded-lg border border-indigoSoft-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-          >
-            <option value="">All</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-        
-      </div>
 
       {/* Data Table */}
       {programsData?.data?.length === 0 ? (
@@ -235,42 +278,145 @@ export const Programs: React.FC = () => {
           <div className="relative w-full max-w-2xl rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card p-4">
             <h3 className="text-lg font-semibold mb-2">{editingProgram ? t('programs.edit_program') : t('programs.add_program')}</h3>
             <form onSubmit={handleSubmit(handleSubmitForm)}>
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-4">
+                {/* Category Selection */}
                 <Controller
-                  name="name"
+                  name="category_id"
                   control={control}
-                  rules={{ required: t('programs.program_title') + ' is required' }}
+                  rules={{ required: 'الفئة مطلوبة', min: { value: 1, message: 'يرجى اختيار فئة' } }}
                   render={({ field }) => (
                     <div>
-                      <label className="block text-sm mb-1">{t('programs.program_title')}</label>
-                      <input
+                      <label className="block text-sm mb-1 font-semibold">
+                        الفئة <span className="text-rose-500">*</span>
+                      </label>
+                      <select
                         {...field}
-                        autoFocus
-                        className={`w-full h-10 px-3 rounded-md border ${(errors as any).name ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                        placeholder={t('programs.program_title')}
-                      />
-                      {(errors as any).name && (
-                        <div className="text-xs text-rose-600 mt-1">{String((errors as any).name.message)}</div>
+                        value={field.value}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        className={`w-full h-10 px-3 rounded-md border ${errors.category_id ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                      >
+                        <option value="0">اختر الفئة</option>
+                        {(categoriesData?.data || []).map((cat) => (
+                          <option key={cat.id} value={cat.id}>{cat.name_ar} - {cat.name_en}</option>
+                        ))}
+                      </select>
+                      {errors.category_id && (
+                        <div className="text-xs text-rose-600 mt-1">{String(errors.category_id.message)}</div>
                       )}
                     </div>
                   )}
                 />
-                
-                
-                
 
+                {/* Titles - Arabic & English */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Controller
+                    name="title_ar"
+                    control={control}
+                    rules={{ required: 'العنوان بالعربية مطلوب' }}
+                    render={({ field }) => (
+                      <div>
+                        <label className="block text-sm mb-1 font-semibold">
+                          العنوان (العربية) <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          {...field}
+                          autoFocus
+                          className={`w-full h-10 px-3 rounded-md border ${errors.title_ar ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                          placeholder="أدخل عنوان البرنامج بالعربية"
+                          dir="rtl"
+                        />
+                        {errors.title_ar && (
+                          <div className="text-xs text-rose-600 mt-1">{String(errors.title_ar.message)}</div>
+                        )}
+                      </div>
+                    )}
+                  />
+                  
+                  <Controller
+                    name="title_en"
+                    control={control}
+                    rules={{ required: 'English title is required' }}
+                    render={({ field }) => (
+                      <div>
+                        <label className="block text-sm mb-1 font-semibold">
+                          Title (English) <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          {...field}
+                          className={`w-full h-10 px-3 rounded-md border ${errors.title_en ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                          placeholder="Enter program title in English"
+                          dir="ltr"
+                        />
+                        {errors.title_en && (
+                          <div className="text-xs text-rose-600 mt-1">{String(errors.title_en.message)}</div>
+                        )}
+                      </div>
+                    )}
+                  />
+                </div>
+
+                {/* Descriptions - Arabic & English */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Controller
+                    name="description_ar"
+                    control={control}
+                    rules={{ required: 'الوصف بالعربية مطلوب' }}
+                    render={({ field }) => (
+                      <div>
+                        <label className="block text-sm mb-1 font-semibold">
+                          الوصف (العربية) <span className="text-rose-500">*</span>
+                        </label>
+                        <textarea
+                          {...field}
+                          rows={3}
+                          className={`w-full px-3 py-2 rounded-md border ${errors.description_ar ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                          placeholder="أدخل وصف البرنامج بالعربية"
+                          dir="rtl"
+                        />
+                        {errors.description_ar && (
+                          <div className="text-xs text-rose-600 mt-1">{String(errors.description_ar.message)}</div>
+                        )}
+                      </div>
+                    )}
+                  />
+                  
+                  <Controller
+                    name="description_en"
+                    control={control}
+                    rules={{ required: 'English description is required' }}
+                    render={({ field }) => (
+                      <div>
+                        <label className="block text-sm mb-1 font-semibold">
+                          Description (English) <span className="text-rose-500">*</span>
+                        </label>
+                        <textarea
+                          {...field}
+                          rows={3}
+                          className={`w-full px-3 py-2 rounded-md border ${errors.description_en ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                          placeholder="Enter program description in English"
+                          dir="ltr"
+                        />
+                        {errors.description_en && (
+                          <div className="text-xs text-rose-600 mt-1">{String(errors.description_en.message)}</div>
+                        )}
+                      </div>
+                    )}
+                  />
+                </div>
+
+                {/* Status */}
                 <Controller
                   name="status"
                   control={control}
                   render={({ field }) => (
                     <div>
-                      <label className="block text-sm mb-1">{t('programs.program_status')}</label>
+                      <label className="block text-sm mb-1 font-semibold">{t('programs.program_status')}</label>
                       <select
                         {...field}
                         className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                       >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
+                        <option value="active">{t('common.active')}</option>
+                        <option value="inactive">{t('common.inactive')}</option>
                       </select>
                     </div>
                   )}

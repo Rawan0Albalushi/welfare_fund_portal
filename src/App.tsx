@@ -15,8 +15,9 @@ import { Donations } from './pages/Donations';
 import { Applications } from './pages/Applications';
 import { Campaigns } from './pages/Campaigns';
 import { Users } from './pages/Users';
-import { RolesPermissions } from './pages/RolesPermissions';
+// import { RolesPermissions } from './pages/RolesPermissions';
 import { AuditLogs } from './pages/AuditLogs';
+import { FinancialReport } from './pages/FinancialReport';
 import './i18n';
 
 // Create a client
@@ -71,8 +72,9 @@ function App() {
                             <Route path="/campaigns" element={<Campaigns />} />
                             <Route path="/applications" element={<Applications />} />
                             <Route path="/donations" element={<Donations />} />
+                            <Route path="/financial-report" element={<FinancialReport />} />
                             <Route path="/users" element={<Users />} />
-                            <Route path="/roles-permissions" element={<RolesPermissions />} />
+                            {/* <Route path="/roles-permissions" element={<RolesPermissions />} /> */}
                             <Route path="/audit-logs" element={<AuditLogs />} />
                             <Route path="/settings" element={<Settings />} />
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
