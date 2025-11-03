@@ -111,85 +111,106 @@ export const Login: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen min-h-dvh flex items-center justify-center px-4 py-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      <div
-        dir={i18n.dir()}
-        className="w-full max-w-md rounded-2xl border border-gray-200/70 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-2xl p-6 sm:p-8"
-      >
-        <div className="flex flex-col items-center mb-6 text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary-600 text-white shadow-sm mb-3">
-            <span className="text-lg font-semibold">SW</span>
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight mb-1">{t('auth.login')}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Student Welfare Fund Admin Portal</p>
-          
-          {/* Debug Info */}
-          <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded text-xs">
-            <p><strong>API URL:</strong> {import.meta.env.VITE_API_URL || 'غير محدد'}</p>
-            <p><strong>الخادم:</strong> {import.meta.env.VITE_API_URL ? 'مُعرّف' : 'غير مُعرّف'}</p>
-          </div>
+    <div dir={i18n.dir()} className="min-h-screen min-h-dvh grid grid-cols-1 md:grid-cols-2 bg-[linear-gradient(135deg,theme(colors.rose.50)_0%,theme(colors.rose.50)_35%,theme(colors.blue.50)_65%,theme(colors.slate.50)_100%)] dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 dark:bg-gradient-to-br">
+      {/* Branding panel */}
+      <div className="hidden md:flex relative items-center justify-center overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[radial-gradient(60%_60%_at_20%_20%,theme(colors.rose.200/30),transparent_60%)] mix-blend-soft-light" />
+          <div className="absolute inset-0 bg-[radial-gradient(60%_60%_at_80%_80%,theme(colors.blue.200/25),transparent_60%)] mix-blend-soft-light" />
         </div>
-
-        {loginError && (
-          <div className="mb-3 rounded-md border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 px-3 py-2 text-sm">
-            <div className="flex items-start">
-              <svg className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <div>
-                <p className="font-medium">خطأ في تسجيل الدخول</p>
-                <p className="mt-1">{loginError}</p>
-              </div>
+        <div className="relative z-10 w-full max-w-lg px-10">
+          <div className="flex items-center gap-4 mb-6">
+            <img src="/images/welfarefund.jpg" alt="Welfare Fund" className="h-20 w-40 object-contain shadow-lg shadow-primary-400/20 bg-transparent" />
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Welfare Fund</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Admin Portal</p>
             </div>
           </div>
-        )}
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-100 mb-3">{t('auth.login')}</h1>
+          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+            مرحباً بك في بوابة إدارة صندوق رعاية الطلاب. يرجى تسجيل الدخول لمتابعة عملك وإدارة المحتوى.
+          </p>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
-          <FormField
-            name="email"
-            control={control}
-            label="البريد الإلكتروني"
-            type="email"
-            required
-            fullWidth
-            helperText={errors.email?.message as string}
-            error={!!errors.email}
-          />
+      {/* Form panel */}
+      <div className="flex items-center justify-center px-4 py-10 md:py-16">
+        <div dir={i18n.dir()} className="w-full max-w-md">
+          <div className="rounded-2xl border border-gray-200/70 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-xl p-6 sm:p-8">
+            <div className="flex flex-col items-center mb-6 text-center">
+              <img src="/images/welfarefund.jpg" alt="Welfare Fund" className="h-14 w-44 object-contain shadow-md shadow-primary-300/20 bg-transparent mb-3" />
+              <h2 className="text-xl font-semibold tracking-tight mb-1">{t('auth.login')}</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Student Welfare Fund Admin Portal</p>
+            </div>
 
-          <Controller
-            name="password"
-            control={control}
-            rules={{
-              required: t('auth.password') + ' ' + t('common.required'),
-              minLength: { value: 6, message: t('auth.password') + ' ' + t('common.min_length') },
-            }}
-            render={({ field }) => (
-              <div className="w-full">
-                <label className="block text-sm mb-1">
-                  {t('auth.password')} <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  {...field}
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder={t('auth.password') as string}
-                  className={`w-full h-10 px-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary-500/60 ${errors.password ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                />
-                {errors.password?.message && (
-                  <div className="text-xs mt-1 text-rose-600">{errors.password.message}</div>
-                )}
+            {loginError && (
+              <div className="mb-4 rounded-md border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 px-3 py-2 text-sm">
+                <div className="flex items-start">
+                  <svg className="w-4 h-4 mt-0.5 ltr:mr-2 rtl:ml-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <p className="font-medium">خطأ في تسجيل الدخول</p>
+                    <p className="mt-1">{loginError}</p>
+                  </div>
+                </div>
               </div>
             )}
-          />
 
-          <button
-            type="submit"
-            disabled={isLoggingIn}
-            className="w-full h-10 rounded-md bg-primary-600 hover:bg-primary-700 transition text-white disabled:opacity-60"
-          >
-            {isLoggingIn ? t('common.loading') : t('auth.login')}
-          </button>
-        </form>
+            <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+              <FormField
+                name="email"
+                control={control}
+                label={i18n.language === 'en' ? 'Email' : 'البريد الإلكتروني'}
+                type="email"
+                required
+                fullWidth
+                helperText={errors.email?.message as string}
+                error={!!errors.email}
+              />
+
+              <Controller
+                name="password"
+                control={control}
+                rules={{
+                  required: t('auth.password') + ' ' + t('common.required'),
+                  minLength: { value: 6, message: t('auth.password') + ' ' + t('common.min_length') },
+                }}
+                render={({ field }) => (
+                  <div className="w-full">
+                    <label className="block text-sm mb-1">
+                      {t('auth.password')} <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      {...field}
+                      type="password"
+                      autoComplete="current-password"
+                      placeholder={t('auth.password') as string}
+                      className={`w-full h-10 px-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary-500/60 ${errors.password ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                    />
+                    {errors.password?.message && (
+                      <div className="text-xs mt-1 text-rose-600">{errors.password.message}</div>
+                    )}
+                  </div>
+                )}
+              />
+
+              <button
+                type="submit"
+                disabled={isLoggingIn}
+                className="w-full h-10 rounded-md bg-primary-600 hover:bg-primary-700 transition text-white disabled:opacity-60 shadow focus:outline-none focus:ring-2 focus:ring-primary-400/50"
+              >
+                {isLoggingIn ? t('common.loading') : t('auth.login')}
+              </button>
+            </form>
+
+            {/* Optional environment hint (kept but subtle) */}
+            <div className="mt-4 p-2 bg-primary-50/60 dark:bg-blue-900/10 border border-primary-100/60 dark:border-blue-800/30 rounded text-[11px] text-slate-600 dark:text-slate-300">
+              <p><strong>API URL:</strong> {import.meta.env.VITE_API_URL || 'غير محدد'}</p>
+              <p><strong>الخادم:</strong> {import.meta.env.VITE_API_URL ? 'مُعرّف' : 'غير مُعرّف'}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
