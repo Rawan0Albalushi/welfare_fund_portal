@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
 import { reportsService } from '../api/services/reports';
+import { useDonations } from '../hooks/useDonations';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
+import { DataTable, type Column } from '../components/common/DataTable';
 import type { FinancialReportResponse } from '../api/services/reports';
+import type { Donation } from '../types';
 
 export const FinancialReport: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -22,6 +25,10 @@ export const FinancialReport: React.FC = () => {
   });
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
   const [exporting, setExporting] = useState<'excel' | 'pdf' | null>(null);
+  
+  // Donations pagination state
+  const [donationsPage, setDonationsPage] = useState(0);
+  const [donationsRowsPerPage, setDonationsRowsPerPage] = useState(10);
 
   const loadReport = async () => {
     try {
@@ -32,6 +39,9 @@ export const FinancialReport: React.FC = () => {
         to_date: toDate || undefined,
         period: period,
       });
+      console.log('📊 [FinancialReport] Response received:', response);
+      console.log('📊 [FinancialReport] Response data:', response?.data);
+      console.log('📊 [FinancialReport] Summary:', response?.data?.summary);
       setReportData(response);
     } catch (err: any) {
       console.error('Failed to load financial report:', err);
@@ -44,6 +54,16 @@ export const FinancialReport: React.FC = () => {
   React.useEffect(() => {
     void loadReport();
   }, []);
+
+  // Fetch donations for the donations table
+  const { data: donationsData, isLoading: donationsLoading } = useDonations({
+    page: donationsPage + 1,
+    per_page: donationsRowsPerPage,
+    sort_by: 'created_at',
+    sort_order: 'desc',
+    date_from: fromDate || undefined,
+    date_to: toDate || undefined,
+  });
 
   const handleExportExcel = async () => {
     try {
@@ -77,12 +97,12 @@ export const FinancialReport: React.FC = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = React.useCallback((amount: number) => {
     return new Intl.NumberFormat(isRTL ? 'ar-OM' : 'en-OM', {
       style: 'currency',
       currency: 'OMR',
     }).format(amount);
-  };
+  }, [isRTL]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
@@ -91,6 +111,82 @@ export const FinancialReport: React.FC = () => {
       day: 'numeric',
     });
   };
+
+  // Define columns for donations table
+  const donationsColumns: Column<Donation>[] = React.useMemo(() => [
+    {
+      id: 'id',
+      label: 'ID',
+      minWidth: 70,
+      sortable: true,
+    },
+    {
+      id: 'donation_id',
+      label: t('donations.donation_id'),
+      minWidth: 150,
+      sortable: true,
+    },
+    {
+      id: 'donor_name',
+      label: t('donations.donor_name'),
+      minWidth: 150,
+      sortable: true,
+    },
+    {
+      id: 'amount',
+      label: t('donations.amount'),
+      minWidth: 120,
+      sortable: true,
+      render: (value) => formatCurrency(value || 0),
+    },
+    {
+      id: 'type',
+      label: t('donations.donation_type'),
+      minWidth: 120,
+      sortable: true,
+      render: (value) => (
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+          value === 'quick' 
+            ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-sm' 
+            : 'bg-gradient-to-r from-violet-500 to-violet-600 text-white shadow-sm'
+        }`}>
+          {String(value)}
+        </span>
+      ),
+    },
+    {
+      id: 'status',
+      label: t('donations.donation_status'),
+      minWidth: 120,
+      sortable: true,
+      render: (value) => (
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+          value === 'paid' 
+            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+            : value === 'pending'
+            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+            : value === 'failed'
+            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+            : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+        }`}>
+          {String(value)}
+        </span>
+      ),
+    },
+    {
+      id: 'program.title',
+      label: t('donations.program'),
+      minWidth: 150,
+      render: (_, row) => row.program?.title_ar || row.program?.title_en || 'N/A',
+    },
+    {
+      id: 'created_at',
+      label: t('donations.created_at'),
+      minWidth: 150,
+      sortable: true,
+      render: (value) => new Date(value).toLocaleDateString(),
+    },
+  ], [t, formatCurrency]);
 
   return (
     <div className="w-full space-y-6">
@@ -293,93 +389,25 @@ export const FinancialReport: React.FC = () => {
             </div>
           </div>
 
-          {/* By Status */}
-          {reportData.data.by_status && reportData.data.by_status.length > 0 && (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
-              <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-b border-slate-200 dark:border-slate-700">
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t('financial_report.by_status')}</h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                  <thead className="bg-slate-50 dark:bg-slate-900">
-                    <tr>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('financial_report.status')}</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('financial_report.count')}</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('financial_report.amount')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-                    {reportData.data.by_status.map((item, index) => (
-                      <tr key={index} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">{item.status}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">{item.count}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(item.total)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* By Type */}
-          {reportData.data.by_type && reportData.data.by_type.length > 0 && (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
-              <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-b border-slate-200 dark:border-slate-700">
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t('financial_report.by_type')}</h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                  <thead className="bg-slate-50 dark:bg-slate-900">
-                    <tr>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('financial_report.type')}</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('financial_report.count')}</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('financial_report.amount')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-                    {reportData.data.by_type.map((item, index) => (
-                      <tr key={index} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">{item.type}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">{item.count}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(item.total)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Over Time */}
-          {reportData.data.over_time && reportData.data.over_time.length > 0 && (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
-              <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-b border-slate-200 dark:border-slate-700">
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t('financial_report.over_time')}</h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                  <thead className="bg-slate-50 dark:bg-slate-900">
-                    <tr>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('financial_report.year')}</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('financial_report.month')}</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('financial_report.count')}</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('financial_report.amount')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-                    {reportData.data.over_time.map((item, index) => (
-                      <tr key={index} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">{item.year}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">{item.month}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">{item.count}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(item.total)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+          {/* Donations List */}
+          {donationsLoading ? (
+            <Loader message={i18n.language === 'ar' ? 'جاري تحميل التبرعات...' : 'Loading donations...'} />
+          ) : !donationsData || !donationsData.data || donationsData.data.length === 0 ? (
+            <EmptyState
+              title={i18n.language === 'ar' ? 'لا توجد تبرعات' : 'No Donations'}
+              description={i18n.language === 'ar' ? 'لا توجد تبرعات متاحة للعرض' : 'No donations available to display'}
+              icon="💰"
+            />
+          ) : (
+            <DataTable
+              columns={donationsColumns}
+              data={donationsData.data}
+              page={donationsPage}
+              rowsPerPage={donationsRowsPerPage}
+              onPageChange={setDonationsPage}
+              onRowsPerPageChange={setDonationsRowsPerPage}
+              totalCount={donationsData.total || 0}
+            />
           )}
         </div>
       )}

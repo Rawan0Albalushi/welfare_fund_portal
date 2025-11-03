@@ -249,11 +249,11 @@ export const Categories: React.FC = () => {
         <DataTable
           columns={columns}
           data={categoriesData?.data || []}
-          totalCount={categoriesData?.total || 0}
+          totalCount={categoriesData?.total ?? (categoriesData?.data?.length ?? 0)}
           page={page}
           rowsPerPage={rowsPerPage}
           onPageChange={setPage}
-          onRowsPerPageChange={setRowsPerPage}
+          onRowsPerPageChange={(n) => { setRowsPerPage(n); setPage(0); }}
           onSort={handleSort}
           sortBy={sortBy}
           sortDirection={sortOrder}

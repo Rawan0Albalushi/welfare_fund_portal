@@ -7,17 +7,30 @@ export const categoriesService = {
     const payload = (response.data?.data ?? response.data);
     if (Array.isArray(payload)) {
       const total = payload.length;
+      const currentPage = Math.max(1, Number(params?.page) || 1);
+      const perPage = Math.max(1, Number(params?.per_page) || total || 1);
+      const startIndex = (currentPage - 1) * perPage;
+      const endIndex = startIndex + perPage;
+      const sliced = (payload as Category[]).slice(startIndex, endIndex);
+      const lastPage = Math.max(1, Math.ceil(total / perPage));
       return {
-        data: payload as Category[],
-        current_page: 1,
-        last_page: 1,
-        per_page: total,
+        data: sliced,
+        current_page: currentPage,
+        last_page: lastPage,
+        per_page: perPage,
         total,
-        from: total > 0 ? 1 : 0,
-        to: total,
+        from: total > 0 ? Math.min(total, startIndex + 1) : 0,
+        to: total > 0 ? Math.min(total, endIndex) : 0,
       } as PaginatedResponse<Category>;
     }
-    return payload as PaginatedResponse<Category>;
+    const raw = payload as PaginatedResponse<Category>;
+    const totalFallback = typeof (raw as any).total === 'number' ? (raw as any).total : (
+      (raw as any).last_page && (raw as any).per_page ? (raw as any).last_page * (raw as any).per_page : (Array.isArray((raw as any).data) ? (raw as any).data.length : 0)
+    );
+    return {
+      ...raw,
+      total: totalFallback,
+    } as PaginatedResponse<Category>;
   },
 
   getCategory: async (id: number): Promise<Category> => {
