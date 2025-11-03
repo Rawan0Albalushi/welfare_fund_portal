@@ -12,7 +12,8 @@ export const donationsService = {
         : undefined;
 
       const response = await apiClient.get('/donations', { params: cleanedParams });
-      const payload = response.data?.data ?? response.data;
+      const root = response.data as any;
+      const payload = root?.data ?? root;
       
       // Debug logging for donations
       console.log('💰 [Donations] Raw response:', response.data);
@@ -53,14 +54,26 @@ export const donationsService = {
         return donation;
       });
 
+      // Robust total detection: prefer total; accept numeric string; check meta.total; fallback to last_page*per_page; else current length
+      const explicitTotal = ((): number | undefined => {
+        const p: any = root;
+        if (typeof p?.total === 'number') return p.total;
+        if (typeof p?.total === 'string' && p.total.trim() !== '' && !Number.isNaN(Number(p.total))) return Number(p.total);
+        const metaTotal = p?.meta?.total ?? p?.pagination?.total ?? (payload as any)?.total;
+        if (typeof metaTotal === 'number') return metaTotal;
+        if (typeof metaTotal === 'string' && metaTotal.trim() !== '' && !Number.isNaN(Number(metaTotal))) return Number(metaTotal);
+        return undefined;
+      })();
+      const perPage = Number((root as any)?.per_page ?? (payload as any)?.per_page ?? params?.per_page ?? (normalizedData.length || 10));
+      const lastPage = Number((root as any)?.last_page ?? (payload as any)?.last_page ?? (explicitTotal ? Math.max(1, Math.ceil(explicitTotal / perPage)) : 1));
       const normalized: PaginatedResponse<Donation> = {
         data: normalizedData,
-        current_page: (payload as any)?.current_page ?? params?.page ?? 1,
-        last_page: (payload as any)?.last_page ?? 1,
-        per_page: (payload as any)?.per_page ?? params?.per_page ?? 10,
-        total: (payload as any)?.total ?? normalizedData.length,
-        from: (payload as any)?.from ?? 0,
-        to: (payload as any)?.to ?? 0,
+        current_page: (root as any)?.current_page ?? (payload as any)?.current_page ?? params?.page ?? 1,
+        last_page: lastPage,
+        per_page: perPage,
+        total: explicitTotal ?? (lastPage * perPage) ?? normalizedData.length,
+        from: (root as any)?.from ?? (payload as any)?.from ?? 0,
+        to: (root as any)?.to ?? (payload as any)?.to ?? 0,
       };
 
       return normalized;
@@ -74,7 +87,8 @@ export const donationsService = {
               )
             : undefined;
           const response = await apiClient.get('/donations', { params: cleanedParams });
-          const payload = response.data?.data ?? response.data;
+          const root = response.data as any;
+          const payload = root?.data ?? root;
           const rawData = Array.isArray((payload as any)?.data)
             ? (payload as any).data
             : Array.isArray(payload)
@@ -98,14 +112,25 @@ export const donationsService = {
             return donation;
           });
 
+          const explicitTotal = ((): number | undefined => {
+            const p: any = root;
+            if (typeof p?.total === 'number') return p.total;
+            if (typeof p?.total === 'string' && p.total.trim() !== '' && !Number.isNaN(Number(p.total))) return Number(p.total);
+            const metaTotal = p?.meta?.total ?? p?.pagination?.total ?? (payload as any)?.total;
+            if (typeof metaTotal === 'number') return metaTotal;
+            if (typeof metaTotal === 'string' && metaTotal.trim() !== '' && !Number.isNaN(Number(metaTotal))) return Number(metaTotal);
+            return undefined;
+          })();
+          const perPage = Number((root as any)?.per_page ?? (payload as any)?.per_page ?? params?.per_page ?? (normalizedData.length || 10));
+          const lastPage = Number((root as any)?.last_page ?? (payload as any)?.last_page ?? (explicitTotal ? Math.max(1, Math.ceil(explicitTotal / perPage)) : 1));
           const normalized: PaginatedResponse<Donation> = {
             data: normalizedData,
-            current_page: (payload as any)?.current_page ?? params?.page ?? 1,
-            last_page: (payload as any)?.last_page ?? 1,
-            per_page: (payload as any)?.per_page ?? params?.per_page ?? 10,
-            total: (payload as any)?.total ?? normalizedData.length,
-            from: (payload as any)?.from ?? 0,
-            to: (payload as any)?.to ?? 0,
+            current_page: (root as any)?.current_page ?? (payload as any)?.current_page ?? params?.page ?? 1,
+            last_page: lastPage,
+            per_page: perPage,
+            total: explicitTotal ?? (lastPage * perPage) ?? normalizedData.length,
+            from: (root as any)?.from ?? (payload as any)?.from ?? 0,
+            to: (root as any)?.to ?? (payload as any)?.to ?? 0,
           };
           return normalized;
         } catch (legacyError: any) {
