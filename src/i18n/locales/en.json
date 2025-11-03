@@ -64,7 +64,17 @@
     "active_programs": "Active Programs",
     "pending_applications": "Pending Student Registrations",
     "recent_donations": "Recent Donations",
-    "recent_applications": "Recent Student Registrations"
+    "recent_applications": "Recent Student Registrations",
+    "average_donation": "Average Donation",
+    "paid_donations": "Paid Donations",
+    "quick_donations": "Quick Donations",
+    "failed_donations": "Failed Donations",
+    "pending_donations": "Pending Donations",
+    "expired_donations": "Expired Donations",
+    "approved_applications": "Approved Student Registrations",
+    "rejected_applications": "Rejected Student Registrations",
+    "under_review_applications": "Under Review Student Registrations",
+    "total_applications": "Total Student Registrations"
   },
   "categories": {
     "title": "Categories",

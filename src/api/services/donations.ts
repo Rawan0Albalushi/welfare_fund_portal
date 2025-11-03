@@ -19,21 +19,46 @@ export const donationsService = {
       console.log('💰 [Donations] Payload:', payload);
       if (payload?.data && Array.isArray(payload.data)) {
         console.log('💰 [Donations] Sample donation:', payload.data[0]);
+        console.log('💰 [Donations] Sample donation amount field:', {
+          amount: payload.data[0]?.amount,
+          amountType: typeof payload.data[0]?.amount,
+          paid_amount: payload.data[0]?.paid_amount,
+          paidAmountType: typeof payload.data[0]?.paid_amount,
+        });
         console.log('💰 [Donations] Total donations count:', payload.data.length);
         console.log('💰 [Donations] Total amount sum:', payload.data.reduce((sum: number, d: Donation) => sum + (d.amount || 0), 0));
       }
 
       // Normalize to consistent paginated response
+      const rawData = Array.isArray((payload as any)?.data)
+        ? (payload as any).data
+        : Array.isArray(payload)
+          ? (payload as Donation[])
+          : [];
+
+      // Normalize donation data - ensure amounts are numbers
+      const normalizedData = rawData.map((donation: any) => {
+        // Ensure amount is a number
+        if (donation.amount !== undefined && donation.amount !== null) {
+          donation.amount = typeof donation.amount === 'string' 
+            ? parseFloat(donation.amount) || 0 
+            : Number(donation.amount) || 0;
+        }
+        // Ensure paid_amount is a number if present
+        if (donation.paid_amount !== undefined && donation.paid_amount !== null) {
+          donation.paid_amount = typeof donation.paid_amount === 'string' 
+            ? parseFloat(donation.paid_amount) || 0 
+            : Number(donation.paid_amount) || 0;
+        }
+        return donation;
+      });
+
       const normalized: PaginatedResponse<Donation> = {
-        data: Array.isArray((payload as any)?.data)
-          ? (payload as any).data
-          : Array.isArray(payload)
-            ? (payload as Donation[])
-            : [],
+        data: normalizedData,
         current_page: (payload as any)?.current_page ?? params?.page ?? 1,
         last_page: (payload as any)?.last_page ?? 1,
         per_page: (payload as any)?.per_page ?? params?.per_page ?? 10,
-        total: (payload as any)?.total ?? ((Array.isArray((payload as any)?.data) ? (payload as any).data.length : Array.isArray(payload) ? (payload as any).length : 0)),
+        total: (payload as any)?.total ?? normalizedData.length,
         from: (payload as any)?.from ?? 0,
         to: (payload as any)?.to ?? 0,
       };
@@ -50,16 +75,35 @@ export const donationsService = {
             : undefined;
           const response = await apiClient.get('/donations', { params: cleanedParams });
           const payload = response.data?.data ?? response.data;
+          const rawData = Array.isArray((payload as any)?.data)
+            ? (payload as any).data
+            : Array.isArray(payload)
+              ? (payload as Donation[])
+              : [];
+
+          // Normalize donation data - ensure amounts are numbers
+          const normalizedData = rawData.map((donation: any) => {
+            // Ensure amount is a number
+            if (donation.amount !== undefined && donation.amount !== null) {
+              donation.amount = typeof donation.amount === 'string' 
+                ? parseFloat(donation.amount) || 0 
+                : Number(donation.amount) || 0;
+            }
+            // Ensure paid_amount is a number if present
+            if (donation.paid_amount !== undefined && donation.paid_amount !== null) {
+              donation.paid_amount = typeof donation.paid_amount === 'string' 
+                ? parseFloat(donation.paid_amount) || 0 
+                : Number(donation.paid_amount) || 0;
+            }
+            return donation;
+          });
+
           const normalized: PaginatedResponse<Donation> = {
-            data: Array.isArray((payload as any)?.data)
-              ? (payload as any).data
-              : Array.isArray(payload)
-                ? (payload as Donation[])
-                : [],
+            data: normalizedData,
             current_page: (payload as any)?.current_page ?? params?.page ?? 1,
             last_page: (payload as any)?.last_page ?? 1,
             per_page: (payload as any)?.per_page ?? params?.per_page ?? 10,
-            total: (payload as any)?.total ?? ((Array.isArray((payload as any)?.data) ? (payload as any).data.length : Array.isArray(payload) ? (payload as any).length : 0)),
+            total: (payload as any)?.total ?? normalizedData.length,
             from: (payload as any)?.from ?? 0,
             to: (payload as any)?.to ?? 0,
           };

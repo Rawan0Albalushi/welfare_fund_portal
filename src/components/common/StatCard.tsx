@@ -22,12 +22,12 @@ export const StatCard: React.FC<StatCardProps> = ({
   // Determine background color based on color prop
   const getBackgroundColor = () => {
     const colorMap = {
-      primary: 'bg-gradient-to-br from-blue-100/50 via-blue-50/40 to-indigo-100/50 dark:from-blue-950/10 dark:via-blue-950/5 dark:to-indigo-950/10',
-      secondary: 'bg-gradient-to-br from-purple-100/50 via-purple-50/40 to-pink-100/50 dark:from-purple-950/10 dark:via-purple-950/5 dark:to-pink-950/10',
-      success: 'bg-gradient-to-br from-emerald-100/50 via-emerald-50/40 to-green-100/50 dark:from-emerald-950/10 dark:via-emerald-950/5 dark:to-green-950/10',
-      error: 'bg-gradient-to-br from-rose-100/50 via-rose-50/40 to-red-100/50 dark:from-rose-950/10 dark:via-rose-950/5 dark:to-red-950/10',
-      warning: 'bg-gradient-to-br from-amber-100/50 via-amber-50/40 to-orange-100/50 dark:from-amber-950/10 dark:via-amber-950/5 dark:to-orange-950/10',
-      info: 'bg-gradient-to-br from-cyan-100/50 via-cyan-50/40 to-sky-100/50 dark:from-cyan-950/10 dark:via-cyan-950/5 dark:to-sky-950/10',
+      primary: 'bg-gradient-to-br from-blue-100/80 via-blue-50/70 to-indigo-100/80 dark:from-blue-950/20 dark:via-blue-950/15 dark:to-indigo-950/20',
+      secondary: 'bg-gradient-to-br from-purple-100/80 via-purple-50/70 to-pink-100/80 dark:from-purple-950/20 dark:via-purple-950/15 dark:to-pink-950/20',
+      success: 'bg-gradient-to-br from-emerald-100/80 via-emerald-50/70 to-green-100/80 dark:from-emerald-950/20 dark:via-emerald-950/15 dark:to-green-950/20',
+      error: 'bg-gradient-to-br from-rose-100/80 via-rose-50/70 to-red-100/80 dark:from-rose-950/20 dark:via-rose-950/15 dark:to-red-950/20',
+      warning: 'bg-gradient-to-br from-amber-100/80 via-amber-50/70 to-orange-100/80 dark:from-amber-950/20 dark:via-amber-950/15 dark:to-orange-950/20',
+      info: 'bg-gradient-to-br from-cyan-100/80 via-cyan-50/70 to-sky-100/80 dark:from-cyan-950/20 dark:via-cyan-950/15 dark:to-sky-950/20',
     };
     return colorMap[color] || colorMap.primary;
   };

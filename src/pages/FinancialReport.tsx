@@ -78,9 +78,9 @@ export const FinancialReport: React.FC = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(isRTL ? 'ar-SA' : 'en-US', {
+    return new Intl.NumberFormat(isRTL ? 'ar-OM' : 'en-OM', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'OMR',
     }).format(amount);
   };
 

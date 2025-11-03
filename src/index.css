@@ -279,56 +279,56 @@ body {
 
 /* Total/Count - Blue (information/statistics) */
 .stat-card-total {
-  @apply bg-gradient-to-br from-blue-100/50 via-blue-50/40 to-indigo-100/50 dark:from-blue-950/10 dark:via-blue-950/5 dark:to-indigo-950/10;
+  @apply bg-gradient-to-br from-blue-100/80 via-blue-50/70 to-indigo-100/80 dark:from-blue-950/20 dark:via-blue-950/15 dark:to-indigo-950/20;
 }
 
 /* Amount/Money - Emerald/Green (financial success) */
 .stat-card-amount {
-  @apply bg-gradient-to-br from-emerald-100/50 via-emerald-50/40 to-green-100/50 dark:from-emerald-950/10 dark:via-emerald-950/5 dark:to-green-950/10;
+  @apply bg-gradient-to-br from-emerald-100/80 via-emerald-50/70 to-green-100/80 dark:from-emerald-950/20 dark:via-emerald-950/15 dark:to-green-950/20;
 }
 
 /* Paid/Success - Green (positive/active status) */
 .stat-card-paid,
 .stat-card-approved {
-  @apply bg-gradient-to-br from-green-100/50 via-green-50/40 to-teal-100/50 dark:from-green-950/10 dark:via-green-950/5 dark:to-teal-950/10;
+  @apply bg-gradient-to-br from-green-100/80 via-green-50/70 to-teal-100/80 dark:from-green-950/20 dark:via-green-950/15 dark:to-teal-950/20;
 }
 
 /* Average/Analytics - Purple (analytics/insights) */
 .stat-card-average {
-  @apply bg-gradient-to-br from-purple-100/50 via-purple-50/40 to-pink-100/50 dark:from-purple-950/10 dark:via-purple-950/5 dark:to-pink-950/10;
+  @apply bg-gradient-to-br from-purple-100/80 via-purple-50/70 to-pink-100/80 dark:from-purple-950/20 dark:via-purple-950/15 dark:to-pink-950/20;
 }
 
 /* Pending/Warning - Amber/Orange (needs attention) */
 .stat-card-pending {
-  @apply bg-gradient-to-br from-amber-100/50 via-amber-50/40 to-orange-100/50 dark:from-amber-950/10 dark:via-amber-950/5 dark:to-orange-950/10;
+  @apply bg-gradient-to-br from-amber-100/80 via-amber-50/70 to-orange-100/80 dark:from-amber-950/20 dark:via-amber-950/15 dark:to-orange-950/20;
 }
 
 /* Under Review - Sky/Cyan (information/processing) */
 .stat-card-review,
 .stat-card-info {
-  @apply bg-gradient-to-br from-sky-100/50 via-cyan-50/40 to-blue-100/50 dark:from-sky-950/10 dark:via-cyan-950/5 dark:to-blue-950/10;
+  @apply bg-gradient-to-br from-sky-100/80 via-cyan-50/70 to-blue-100/80 dark:from-sky-950/20 dark:via-cyan-950/15 dark:to-blue-950/20;
 }
 
 /* Rejected/Error - Rose/Red (negative status) */
 .stat-card-rejected {
-  @apply bg-gradient-to-br from-rose-100/50 via-rose-50/40 to-red-100/50 dark:from-rose-950/10 dark:via-rose-950/5 dark:to-red-950/10;
+  @apply bg-gradient-to-br from-rose-100/80 via-rose-50/70 to-red-100/80 dark:from-rose-950/20 dark:via-rose-950/15 dark:to-red-950/20;
 }
 
 /* Fallback for stat cards without specific type (backward compatibility) */
 .stat-card:nth-child(1):not([class*="stat-card-"]) {
-  @apply bg-gradient-to-br from-blue-100/50 via-blue-50/40 to-indigo-100/50 dark:from-blue-950/10 dark:via-blue-950/5 dark:to-indigo-950/10;
+  @apply bg-gradient-to-br from-blue-100/80 via-blue-50/70 to-indigo-100/80 dark:from-blue-950/20 dark:via-blue-950/15 dark:to-indigo-950/20;
 }
 
 .stat-card:nth-child(2):not([class*="stat-card-"]) {
-  @apply bg-gradient-to-br from-emerald-100/50 via-emerald-50/40 to-green-100/50 dark:from-emerald-950/10 dark:via-emerald-950/5 dark:to-green-950/10;
+  @apply bg-gradient-to-br from-emerald-100/80 via-emerald-50/70 to-green-100/80 dark:from-emerald-950/20 dark:via-emerald-950/15 dark:to-green-950/20;
 }
 
 .stat-card:nth-child(3):not([class*="stat-card-"]) {
-  @apply bg-gradient-to-br from-green-100/50 via-green-50/40 to-teal-100/50 dark:from-green-950/10 dark:via-green-950/5 dark:to-teal-950/10;
+  @apply bg-gradient-to-br from-green-100/80 via-green-50/70 to-teal-100/80 dark:from-green-950/20 dark:via-green-950/15 dark:to-teal-950/20;
 }
 
 .stat-card:nth-child(4):not([class*="stat-card-"]) {
-  @apply bg-gradient-to-br from-purple-100/50 via-purple-50/40 to-pink-100/50 dark:from-purple-950/10 dark:via-purple-950/5 dark:to-pink-950/10;
+  @apply bg-gradient-to-br from-purple-100/80 via-purple-50/70 to-pink-100/80 dark:from-purple-950/20 dark:via-purple-950/15 dark:to-pink-950/20;
 }
 
 /* Subtle gradient overlay for stat cards */

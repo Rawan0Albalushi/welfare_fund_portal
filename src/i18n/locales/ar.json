@@ -64,7 +64,17 @@
     "active_programs": "البرامج النشطة",
     "pending_applications": "طلبات التسجيل المعلقة",
     "recent_donations": "التبرعات الأخيرة",
-    "recent_applications": "طلبات التسجيل الأخيرة"
+    "recent_applications": "طلبات التسجيل الأخيرة",
+    "average_donation": "متوسط قيمة التبرع",
+    "paid_donations": "التبرعات المدفوعة",
+    "quick_donations": "التبرعات السريعة",
+    "failed_donations": "التبرعات الفاشلة",
+    "pending_donations": "التبرعات المعلقة",
+    "expired_donations": "التبرعات المنتهية",
+    "approved_applications": "الطلبات المعتمدة",
+    "rejected_applications": "الطلبات المرفوضة",
+    "under_review_applications": "الطلبات قيد المراجعة",
+    "total_applications": "إجمالي الطلبات"
   },
   "categories": {
     "title": "الفئات",
