@@ -417,11 +417,17 @@ export const Donations: React.FC = () => {
         <DataTable
           columns={columns}
           data={donationsData?.data ?? []}
-          totalCount={donationsData?.total || 0}
+          totalCount={
+            (typeof donationsData?.total === 'number' && donationsData.total > 0)
+              ? donationsData.total
+              : ((donationsData?.last_page && donationsData?.per_page)
+                  ? donationsData.last_page * donationsData.per_page
+                  : (donationsData?.data?.length ?? 0))
+          }
           page={page}
           rowsPerPage={rowsPerPage}
           onPageChange={setPage}
-          onRowsPerPageChange={setRowsPerPage}
+          onRowsPerPageChange={(n) => { setRowsPerPage(n); setPage(0); }}
           onSort={handleSort}
           sortBy={sortBy}
           sortDirection={sortOrder}

@@ -48,7 +48,7 @@
   "navigation": {
     "dashboard": "Dashboard",
     "categories": "Categories",
-    "programs": "Programs",
+    "programs": "Support Programs",
     "campaigns": "Campaigns",
     "applications": "Student Registration Requests",
     "donations": "Donations",
@@ -90,7 +90,7 @@
     "category_deleted": "Category deleted successfully"
   },
   "programs": {
-    "title": "Programs",
+  "title": "Support Programs",
     "add_program": "Add Program",
     "edit_program": "Edit Program",
     "program_title": "Program Title",

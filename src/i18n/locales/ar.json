@@ -48,7 +48,7 @@
   "navigation": {
     "dashboard": "لوحة التحكم",
     "categories": "الفئات",
-    "programs": "البرامج",
+    "programs": "برامج الدعم",
     "campaigns": "الحملات",
     "applications": "طلبات تسجيل الطلاب",
     "donations": "التبرعات",
@@ -90,7 +90,7 @@
     "category_deleted": "تم حذف الفئة بنجاح"
   },
   "programs": {
-    "title": "البرامج",
+    "title": "برامج الدعم",
     "add_program": "إضافة برنامج",
     "edit_program": "تعديل البرنامج",
     "program_title": "عنوان البرنامج",
