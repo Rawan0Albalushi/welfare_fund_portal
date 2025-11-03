@@ -45,20 +45,32 @@ export const programsService = {
       const rawAny = (response.data?.data ?? response.data) as any;
       if (Array.isArray(rawAny)) {
         const mapped = rawAny.map(mapApiProgramToUi);
+        const total = mapped.length;
+        const currentPage = Math.max(1, Number(params?.page) || 1);
+        const perPage = Math.max(1, Number(params?.per_page) || total || 1);
+        const startIndex = (currentPage - 1) * perPage;
+        const endIndex = startIndex + perPage;
+        const sliced = mapped.slice(startIndex, endIndex);
+        const lastPage = Math.max(1, Math.ceil(total / perPage));
         return {
-          data: mapped,
-          current_page: 1,
-          last_page: 1,
-          per_page: mapped.length,
-          total: mapped.length,
-          from: mapped.length > 0 ? 1 : 0,
-          to: mapped.length,
+          data: sliced,
+          current_page: currentPage,
+          last_page: lastPage,
+          per_page: perPage,
+          total,
+          from: total > 0 ? Math.min(total, startIndex + 1) : 0,
+          to: total > 0 ? Math.min(total, endIndex) : 0,
         } as PaginatedResponse<Program>;
       }
       const raw = rawAny as PaginatedResponse<any>;
+      const mappedData = Array.isArray(raw.data) ? raw.data.map(mapApiProgramToUi) : [];
+      const totalFallback = typeof raw.total === 'number' ? raw.total : (
+        raw.last_page && raw.per_page ? raw.last_page * raw.per_page : mappedData.length
+      );
       return {
         ...raw,
-        data: Array.isArray(raw.data) ? raw.data.map(mapApiProgramToUi) : [],
+        data: mappedData,
+        total: totalFallback,
       } as PaginatedResponse<Program>;
     } catch (error: any) {
       if (error?.response?.status === 404) {
@@ -66,20 +78,32 @@ export const programsService = {
         const rawAny = (response.data?.data ?? response.data) as any;
         if (Array.isArray(rawAny)) {
           const mapped = rawAny.map(mapApiProgramToUi);
+          const total = mapped.length;
+          const currentPage = Math.max(1, Number(params?.page) || 1);
+          const perPage = Math.max(1, Number(params?.per_page) || total || 1);
+          const startIndex = (currentPage - 1) * perPage;
+          const endIndex = startIndex + perPage;
+          const sliced = mapped.slice(startIndex, endIndex);
+          const lastPage = Math.max(1, Math.ceil(total / perPage));
           return {
-            data: mapped,
-            current_page: 1,
-            last_page: 1,
-            per_page: mapped.length,
-            total: mapped.length,
-            from: mapped.length > 0 ? 1 : 0,
-            to: mapped.length,
+            data: sliced,
+            current_page: currentPage,
+            last_page: lastPage,
+            per_page: perPage,
+            total,
+            from: total > 0 ? Math.min(total, startIndex + 1) : 0,
+            to: total > 0 ? Math.min(total, endIndex) : 0,
           } as PaginatedResponse<Program>;
         }
         const raw = rawAny as PaginatedResponse<any>;
+        const mappedData = Array.isArray(raw.data) ? raw.data.map(mapApiProgramToUi) : [];
+        const totalFallback = typeof raw.total === 'number' ? raw.total : (
+          raw.last_page && raw.per_page ? raw.last_page * raw.per_page : mappedData.length
+        );
         return {
           ...raw,
-          data: Array.isArray(raw.data) ? raw.data.map(mapApiProgramToUi) : [],
+          data: mappedData,
+          total: totalFallback,
         } as PaginatedResponse<Program>;
       }
       throw error;

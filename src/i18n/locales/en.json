@@ -21,6 +21,7 @@
     "back": "Back",
     "next": "Next",
     "previous": "Previous",
+    "rows_per_page": "Rows per page",
     "total": "Total",
     "active": "Active",
     "inactive": "Inactive",

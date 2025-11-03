@@ -92,7 +92,7 @@ export const DataTable = <T extends Record<string, any>>({
 
   return (
     <div className="w-full overflow-hidden rounded-2xl border border-gray-200/70 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card">
-      <div className="max-h-[600px] overflow-x-auto">
+      <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800/60 backdrop-blur z-10">
             <tr className="text-left text-gray-600 dark:text-gray-300">
