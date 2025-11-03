@@ -160,6 +160,7 @@ export const DataTable = <T extends Record<string, any>>({
       </div>
       {totalCount > 0 && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 py-2 border-t border-gray-300 dark:border-gray-600 text-xs sm:text-sm gap-3">
+          {/* Left: rows per page */}
           <div className="flex items-center gap-2">
             <span className="hidden sm:inline">{t('common.rows_per_page') || 'Rows per page'}</span>
             <span className="sm:hidden">Per page:</span>
@@ -168,31 +169,85 @@ export const DataTable = <T extends Record<string, any>>({
               value={rowsPerPage}
               onChange={(e) => onRowsPerPageChange?.(parseInt(e.target.value, 10))}
             >
-              {[5,10,25,50].map((n) => (
+              {[5,10,25,50,100].map((n) => (
                 <option key={n} value={n}>{n}</option>
               ))}
             </select>
+            {/* Range summary */}
+            {(() => {
+              const totalPages = Math.max(1, Math.ceil(totalCount / (rowsPerPage || 1)));
+              const currentPage = Math.min(page, totalPages - 1);
+              const start = totalCount === 0 ? 0 : currentPage * rowsPerPage + 1;
+              const end = Math.min(totalCount, (currentPage + 1) * rowsPerPage);
+              return (
+                <span className="text-gray-600 dark:text-gray-300">
+                  {start}-{end} {t('common.of') || 'of'} {totalCount}
+                </span>
+              );
+            })()}
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              className="px-2 py-1 rounded border border-indigoSoft-200 dark:border-gray-700 disabled:opacity-50 text-xs sm:text-sm"
-              onClick={() => onPageChange?.(Math.max(0, page - 1))}
-              disabled={page <= 0}
-            >
-              {t('common.previous') || 'Prev'}
-            </button>
-            <span className="text-xs sm:text-sm">{page + 1}</span>
-            <button
-              className="px-2 py-1 rounded border border-indigoSoft-200 dark:border-gray-700 disabled:opacity-50 text-xs sm:text-sm"
-              onClick={() => {
-                const maxPage = Math.max(0, Math.ceil(totalCount / rowsPerPage) - 1);
-                onPageChange?.(Math.min(maxPage, page + 1));
-              }}
-              disabled={(page + 1) >= Math.ceil(totalCount / rowsPerPage)}
-            >
-              {t('common.next') || 'Next'}
-            </button>
-          </div>
+
+          {/* Right: pagination controls */}
+          {(() => {
+            const totalPages = Math.max(1, Math.ceil(totalCount / (rowsPerPage || 1)));
+            const atFirst = page <= 0;
+            const atLast = page + 1 >= totalPages;
+
+            const goTo = (p: number) => onPageChange?.(Math.min(totalPages - 1, Math.max(0, p)));
+
+            return (
+              <div className="flex items-center gap-1 sm:gap-2">
+                <button
+                  aria-label="First page"
+                  className="px-2 py-1 rounded border border-indigoSoft-200 dark:border-gray-700 disabled:opacity-50"
+                  onClick={() => goTo(0)}
+                  disabled={atFirst}
+                >
+                  «
+                </button>
+                <button
+                  aria-label="Previous page"
+                  className="px-2 py-1 rounded border border-indigoSoft-200 dark:border-gray-700 disabled:opacity-50"
+                  onClick={() => goTo(page - 1)}
+                  disabled={atFirst}
+                >
+                  {t('common.previous') || 'Prev'}
+                </button>
+
+                {/* Page input */}
+                <div className="inline-flex items-center gap-1">
+                  <input
+                    aria-label="Current page"
+                    className="w-12 h-8 px-2 rounded border border-indigoSoft-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-center"
+                    value={(page + 1).toString()}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, '');
+                      const next = raw === '' ? 1 : Math.max(1, Math.min(Number(raw), totalPages));
+                      goTo(next - 1);
+                    }}
+                  />
+                  <span className="text-gray-600 dark:text-gray-300">/ {totalPages}</span>
+                </div>
+
+                <button
+                  aria-label="Next page"
+                  className="px-2 py-1 rounded border border-indigoSoft-200 dark:border-gray-700 disabled:opacity-50"
+                  onClick={() => goTo(page + 1)}
+                  disabled={atLast}
+                >
+                  {t('common.next') || 'Next'}
+                </button>
+                <button
+                  aria-label="Last page"
+                  className="px-2 py-1 rounded border border-indigoSoft-200 dark:border-gray-700 disabled:opacity-50"
+                  onClick={() => goTo(totalPages - 1)}
+                  disabled={atLast}
+                >
+                  »
+                </button>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

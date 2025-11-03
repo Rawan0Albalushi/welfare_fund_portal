@@ -42,7 +42,36 @@ export const programsService = {
   getPrograms: async (params?: QueryParams): Promise<PaginatedResponse<Program>> => {
     try {
       const response = await apiClient.get('/programs', { params });
-      const rawAny = (response.data?.data ?? response.data) as any;
+      const root = response.data as any;
+      const hasPaginationAtRoot = (
+        typeof root?.total !== 'undefined' || typeof root?.last_page !== 'undefined' || typeof root?.per_page !== 'undefined' || typeof root?.meta?.total !== 'undefined' || typeof root?.pagination?.total !== 'undefined'
+      );
+      // Case 1: backend returns object with pagination + data array
+      if (hasPaginationAtRoot && Array.isArray(root?.data)) {
+        const mappedData = root.data.map(mapApiProgramToUi);
+        const explicitTotal = ((): number | undefined => {
+          if (typeof root?.total === 'number') return root.total;
+          if (typeof root?.total === 'string' && root.total.trim() !== '' && !Number.isNaN(Number(root.total))) return Number(root.total);
+          const metaTotal = root?.meta?.total ?? root?.pagination?.total;
+          if (typeof metaTotal === 'number') return metaTotal;
+          if (typeof metaTotal === 'string' && metaTotal.trim() !== '' && !Number.isNaN(Number(metaTotal))) return Number(metaTotal);
+          return undefined;
+        })();
+        const perPage = Number(root?.per_page ?? params?.per_page ?? (mappedData.length || 10));
+        const lastPage = Number(root?.last_page ?? (explicitTotal ? Math.max(1, Math.ceil(explicitTotal / perPage)) : 1));
+        const total = explicitTotal ?? (lastPage * perPage);
+        return {
+          data: mappedData,
+          current_page: Number(root?.current_page ?? params?.page ?? 1),
+          last_page: lastPage,
+          per_page: perPage,
+          total,
+          from: Number(root?.from ?? 0),
+          to: Number(root?.to ?? 0),
+        } as PaginatedResponse<Program>;
+      }
+      // Case 2: backend returns plain array (no pagination info)
+      const rawAny = (root?.data ?? root) as any;
       if (Array.isArray(rawAny)) {
         const mapped = rawAny.map(mapApiProgramToUi);
         const total = mapped.length;
@@ -62,11 +91,20 @@ export const programsService = {
           to: total > 0 ? Math.min(total, endIndex) : 0,
         } as PaginatedResponse<Program>;
       }
-      const raw = rawAny as PaginatedResponse<any>;
-      const mappedData = Array.isArray(raw.data) ? raw.data.map(mapApiProgramToUi) : [];
-      const totalFallback = typeof raw.total === 'number' ? raw.total : (
-        raw.last_page && raw.per_page ? raw.last_page * raw.per_page : mappedData.length
-      );
+      const raw = root as any;
+      const mappedData = Array.isArray(raw?.data) ? raw.data.map(mapApiProgramToUi) : [];
+      // Determine total robustly: prefer numeric total; accept numeric string; fallback to meta.total; then last_page*per_page; else length
+      const explicitTotal = ((): number | undefined => {
+        if (typeof raw?.total === 'number') return raw.total as number;
+        if (typeof raw?.total === 'string' && raw.total.trim() !== '' && !Number.isNaN(Number(raw.total))) return Number(raw.total);
+        const metaTotal = raw?.meta?.total ?? raw?.pagination?.total;
+        if (typeof metaTotal === 'number') return metaTotal as number;
+        if (typeof metaTotal === 'string' && metaTotal.trim() !== '' && !Number.isNaN(Number(metaTotal))) return Number(metaTotal);
+        return undefined;
+      })();
+      const totalFallback = explicitTotal !== undefined
+        ? explicitTotal
+        : (raw?.last_page && raw?.per_page ? Number(raw.last_page) * Number(raw.per_page) : mappedData.length);
       return {
         ...raw,
         data: mappedData,
@@ -75,7 +113,34 @@ export const programsService = {
     } catch (error: any) {
       if (error?.response?.status === 404) {
         const response = await apiClient.get('/programs', { params });
-        const rawAny = (response.data?.data ?? response.data) as any;
+        const root = response.data as any;
+        const hasPaginationAtRoot = (
+          typeof root?.total !== 'undefined' || typeof root?.last_page !== 'undefined' || typeof root?.per_page !== 'undefined' || typeof root?.meta?.total !== 'undefined' || typeof root?.pagination?.total !== 'undefined'
+        );
+        if (hasPaginationAtRoot && Array.isArray(root?.data)) {
+          const mappedData = root.data.map(mapApiProgramToUi);
+          const explicitTotal = ((): number | undefined => {
+            if (typeof root?.total === 'number') return root.total;
+            if (typeof root?.total === 'string' && root.total.trim() !== '' && !Number.isNaN(Number(root.total))) return Number(root.total);
+            const metaTotal = root?.meta?.total ?? root?.pagination?.total;
+            if (typeof metaTotal === 'number') return metaTotal;
+            if (typeof metaTotal === 'string' && metaTotal.trim() !== '' && !Number.isNaN(Number(metaTotal))) return Number(metaTotal);
+            return undefined;
+          })();
+          const perPage = Number(root?.per_page ?? params?.per_page ?? (mappedData.length || 10));
+          const lastPage = Number(root?.last_page ?? (explicitTotal ? Math.max(1, Math.ceil(explicitTotal / perPage)) : 1));
+          const total = explicitTotal ?? (lastPage * perPage);
+          return {
+            data: mappedData,
+            current_page: Number(root?.current_page ?? params?.page ?? 1),
+            last_page: lastPage,
+            per_page: perPage,
+            total,
+            from: Number(root?.from ?? 0),
+            to: Number(root?.to ?? 0),
+          } as PaginatedResponse<Program>;
+        }
+        const rawAny = (root?.data ?? root) as any;
         if (Array.isArray(rawAny)) {
           const mapped = rawAny.map(mapApiProgramToUi);
           const total = mapped.length;
@@ -95,11 +160,19 @@ export const programsService = {
             to: total > 0 ? Math.min(total, endIndex) : 0,
           } as PaginatedResponse<Program>;
         }
-        const raw = rawAny as PaginatedResponse<any>;
-        const mappedData = Array.isArray(raw.data) ? raw.data.map(mapApiProgramToUi) : [];
-        const totalFallback = typeof raw.total === 'number' ? raw.total : (
-          raw.last_page && raw.per_page ? raw.last_page * raw.per_page : mappedData.length
-        );
+        const raw = root as any;
+        const mappedData = Array.isArray(raw?.data) ? raw.data.map(mapApiProgramToUi) : [];
+        const explicitTotal = ((): number | undefined => {
+          if (typeof raw?.total === 'number') return raw.total as number;
+          if (typeof raw?.total === 'string' && raw.total.trim() !== '' && !Number.isNaN(Number(raw.total))) return Number(raw.total);
+          const metaTotal = raw?.meta?.total ?? raw?.pagination?.total;
+          if (typeof metaTotal === 'number') return metaTotal as number;
+          if (typeof metaTotal === 'string' && metaTotal.trim() !== '' && !Number.isNaN(Number(metaTotal))) return Number(metaTotal);
+          return undefined;
+        })();
+        const totalFallback = explicitTotal !== undefined
+          ? explicitTotal
+          : (raw?.last_page && raw?.per_page ? Number(raw.last_page) * Number(raw.per_page) : mappedData.length);
         return {
           ...raw,
           data: mappedData,

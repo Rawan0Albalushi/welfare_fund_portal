@@ -33,7 +33,15 @@ export const applicationsService = {
         current_page: (payload as any)?.current_page ?? params?.page ?? 1,
         last_page: (payload as any)?.last_page ?? 1,
         per_page: (payload as any)?.per_page ?? params?.per_page ?? 10,
-        total: (payload as any)?.total ?? ((Array.isArray((payload as any)?.data) ? (payload as any).data.length : Array.isArray(payload) ? (payload as any).length : 0)),
+        // Prefer explicit total; otherwise compute from last_page & per_page if provided; else fallback to current page length
+        total: (payload as any)?.total
+          ?? (((payload as any)?.last_page && (payload as any)?.per_page)
+                ? Number((payload as any).last_page) * Number((payload as any).per_page)
+                : (Array.isArray((payload as any)?.data)
+                    ? (payload as any).data.length
+                    : Array.isArray(payload)
+                      ? (payload as any).length
+                      : 0)),
         from: (payload as any)?.from ?? 0,
         to: (payload as any)?.to ?? 0,
       };
@@ -54,7 +62,14 @@ export const applicationsService = {
             current_page: (payload as any)?.current_page ?? params?.page ?? 1,
             last_page: (payload as any)?.last_page ?? 1,
             per_page: (payload as any)?.per_page ?? params?.per_page ?? 10,
-            total: (payload as any)?.total ?? ((Array.isArray((payload as any)?.data) ? (payload as any).data.length : Array.isArray(payload) ? (payload as any).length : 0)),
+            total: (payload as any)?.total
+              ?? (((payload as any)?.last_page && (payload as any)?.per_page)
+                    ? Number((payload as any).last_page) * Number((payload as any).per_page)
+                    : (Array.isArray((payload as any)?.data)
+                        ? (payload as any).data.length
+                        : Array.isArray(payload)
+                          ? (payload as any).length
+                          : 0)),
             from: (payload as any)?.from ?? 0,
             to: (payload as any)?.to ?? 0,
           };

@@ -258,7 +258,13 @@ export const Programs: React.FC = () => {
         <DataTable
           columns={columns}
           data={programsData?.data || []}
-          totalCount={programsData?.total ?? (programsData?.data?.length ?? 0)}
+          totalCount={
+            (typeof programsData?.total === 'number' && programsData.total > 0)
+              ? programsData.total
+              : ((programsData?.last_page && programsData?.per_page)
+                  ? programsData.last_page * programsData.per_page
+                  : (programsData?.data?.length ?? 0))
+          }
           page={page}
           rowsPerPage={rowsPerPage}
           onPageChange={setPage}

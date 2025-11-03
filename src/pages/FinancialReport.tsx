@@ -104,13 +104,7 @@ export const FinancialReport: React.FC = () => {
     }).format(amount);
   }, [isRTL]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
+  // Removed unused formatDate helper to satisfy TypeScript build
 
   // Define columns for donations table
   const donationsColumns: Column<Donation>[] = React.useMemo(() => [
@@ -315,28 +309,6 @@ export const FinancialReport: React.FC = () => {
 
       {reportData && (
         <div className="space-y-6">
-          {/* Period Info */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">{t('financial_report.period_info')}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <span className="text-sm text-slate-500 dark:text-slate-400">{t('financial_report.from')}:</span>
-                <div className="font-semibold text-slate-900 dark:text-slate-100">{formatDate(reportData.data.period.from)}</div>
-              </div>
-              <div className="space-y-1">
-                <span className="text-sm text-slate-500 dark:text-slate-400">{t('financial_report.to')}:</span>
-                <div className="font-semibold text-slate-900 dark:text-slate-100">{formatDate(reportData.data.period.to)}</div>
-              </div>
-              <div className="space-y-1">
-                <span className="text-sm text-slate-500 dark:text-slate-400">{t('financial_report.type')}:</span>
-                <div className="font-semibold text-slate-900 dark:text-slate-100">
-                  {reportData.data.period.type === 'daily' ? t('financial_report.daily') : 
-                   reportData.data.period.type === 'weekly' ? t('financial_report.weekly') : t('financial_report.monthly')}
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="stat-card stat-card-total">
