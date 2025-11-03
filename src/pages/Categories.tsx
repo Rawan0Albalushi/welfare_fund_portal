@@ -249,7 +249,13 @@ export const Categories: React.FC = () => {
         <DataTable
           columns={columns}
           data={categoriesData?.data || []}
-          totalCount={categoriesData?.total ?? (categoriesData?.data?.length ?? 0)}
+          totalCount={
+            (typeof categoriesData?.total === 'number' && categoriesData.total > 0)
+              ? categoriesData.total
+              : ((categoriesData?.last_page && categoriesData?.per_page)
+                  ? categoriesData.last_page * categoriesData.per_page
+                  : (categoriesData?.data?.length ?? 0))
+          }
           page={page}
           rowsPerPage={rowsPerPage}
           onPageChange={setPage}

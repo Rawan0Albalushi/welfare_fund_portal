@@ -91,7 +91,13 @@ export const Campaigns: React.FC = () => {
 				category_id: categoryFilter ? Number(categoryFilter) : undefined,
 			});
 			setItems(res.data ?? []);
-			setTotal(res.total ?? (res.data?.length ?? 0));
+			setTotal(
+				(typeof res.total === 'number' && res.total > 0)
+					? res.total
+					: ((res.last_page && res.per_page)
+							? res.last_page * res.per_page
+							: (res.data?.length ?? 0))
+			);
 		} catch (e: any) {
 			setError(e?.message ?? 'Failed to load');
 		} finally {

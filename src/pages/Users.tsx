@@ -1,10 +1,17 @@
 import React from 'react';
 import { usersService } from '../api/services/users';
 import { rolesService } from '../api/services/roles';
+import { DataTable, type Column } from '../components/common/DataTable';
+import { EmptyState } from '../components/common/EmptyState';
+import { Loader } from '../components/common/Loader';
+import { type User } from '../api/services/users';
 
 export const Users: React.FC = () => {
 	const [loading, setLoading] = React.useState(false);
-	const [items, setItems] = React.useState<any[]>([]);
+	const [items, setItems] = React.useState<User[]>([]);
+	const [total, setTotal] = React.useState(0);
+	const [page, setPage] = React.useState(0);
+	const [rowsPerPage, setRowsPerPage] = React.useState(10);
 	const [error, setError] = React.useState<string | null>(null);
 	const [roles, setRoles] = React.useState<any[]>([]);
 	const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -17,12 +24,52 @@ export const Users: React.FC = () => {
 		role_ids: [] as number[],
 	});
 
+	const columns: Column<User>[] = React.useMemo(() => [
+		{
+			id: 'id',
+			label: 'ID',
+			minWidth: 70,
+			sortable: true,
+		},
+		{
+			id: 'name',
+			label: 'Name',
+			minWidth: 150,
+			sortable: true,
+		},
+		{
+			id: 'phone',
+			label: 'Phone',
+			minWidth: 120,
+			sortable: true,
+		},
+		{
+			id: 'email',
+			label: 'Email',
+			minWidth: 200,
+			sortable: true,
+		},
+		{
+			id: 'created_at',
+			label: 'Created At',
+			minWidth: 150,
+			sortable: true,
+			render: (value) => value ? new Date(value).toLocaleDateString() : '-',
+		},
+	], []);
+
 	const load = async () => {
 		try {
 			setLoading(true);
-			const res = await usersService.getUsers({ page: 1, per_page: 10 });
-			// Support both paginated response { data: [] } and bare array []
-			setItems(Array.isArray(res as any) ? (res as any) : ((res as any)?.data ?? []));
+			const res = await usersService.getUsers({ page: page + 1, per_page: rowsPerPage });
+			setItems(res.data ?? []);
+			setTotal(
+				(typeof res.total === 'number' && res.total > 0)
+					? res.total
+					: ((res.last_page && res.per_page)
+							? res.last_page * res.per_page
+							: (res.data?.length ?? 0))
+			);
 		} catch (e: any) {
 			setError(e?.message ?? 'Failed to load');
 		} finally {
@@ -33,7 +80,6 @@ export const Users: React.FC = () => {
 	const loadRoles = async () => {
 		try {
 			const res = await rolesService.getRoles({ page: 1, per_page: 100 });
-			// Support both paginated response { data: [] } and bare array []
 			setRoles(Array.isArray(res as any) ? (res as any) : ((res as any)?.data ?? []));
 		} catch {}
 	};
@@ -41,7 +87,8 @@ export const Users: React.FC = () => {
 	React.useEffect(() => {
 		void load();
 		void loadRoles();
-	}, []);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [page, rowsPerPage]);
 
 	const openCreate = () => {
 		setEditingId(null);
@@ -49,9 +96,9 @@ export const Users: React.FC = () => {
 		setIsModalOpen(true);
 	};
 
-	const openEdit = (u: any) => {
+	const openEdit = (u: User) => {
 		setEditingId(u.id);
-		setForm({ name: u.name ?? '', phone: u.phone ?? '', email: u.email ?? '', password: '', role_ids: (u.roles?.map((r: any) => r.id) ?? []) });
+		setForm({ name: u.name ?? '', phone: u.phone ?? '', email: u.email ?? '', password: '', role_ids: (u as any).roles?.map((r: any) => r.id) ?? [] });
 		setIsModalOpen(true);
 	};
 
@@ -76,11 +123,11 @@ export const Users: React.FC = () => {
 		}
 	};
 
-	const handleDelete = async (id: number) => {
+	const handleDelete = async (user: User) => {
 		if (!confirm('Delete this user?')) return;
 		try {
 			setLoading(true);
-			await usersService.deleteUser(id);
+			await usersService.deleteUser(user.id);
 			await load();
 		} catch (e: any) {
 			setError(e?.message ?? 'Failed to delete');
@@ -89,39 +136,40 @@ export const Users: React.FC = () => {
 		}
 	};
 
+	if (loading && items.length === 0) {
+		return <Loader message="Loading users..." />;
+	}
+
 	return (
-		<div className="w-full">
-			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+		<div className="w-full space-y-6">
+			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 				<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Users</h1>
-				<button onClick={openCreate} className="w-full sm:w-auto px-3 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">New User</button>
+				<button onClick={openCreate} className="w-full sm:w-auto h-10 px-4 rounded-xl text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium">
+					+ New User
+				</button>
 			</div>
-			{loading && <div>Loading...</div>}
 			{error && <div className="text-red-600">{error}</div>}
-			<div className="overflow-auto rounded-lg border border-gray-200">
-				<table className="min-w-full divide-y divide-gray-300">
-					<thead className="bg-gray-50">
-						<tr>
-							<th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">ID</th>
-							<th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">Name</th>
-							<th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">Phone</th>
-							<th className="px-4 py-2" />
-						</tr>
-					</thead>
-					<tbody className="divide-y divide-gray-300 bg-white">
-						{items.map((u) => (
-							<tr key={u.id}>
-								<td className="px-4 py-2">{u.id}</td>
-								<td className="px-4 py-2">{u.name}</td>
-								<td className="px-4 py-2">{u.phone ?? '-'}</td>
-								<td className="px-4 py-2 text-right">
-									<button onClick={() => openEdit(u)} className="text-primary-600 hover:underline mr-3">Edit</button>
-									<button onClick={() => handleDelete(u.id)} className="text-red-600 hover:underline">Delete</button>
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-			</div>
+			
+			{items.length === 0 ? (
+				<EmptyState
+					title="No users found"
+					description="Get started by creating your first user"
+					actionLabel="New User"
+					onAction={() => openCreate()}
+				/>
+			) : (
+				<DataTable
+					columns={columns}
+					data={items}
+					totalCount={total}
+					page={page}
+					rowsPerPage={rowsPerPage}
+					onPageChange={setPage}
+					onRowsPerPageChange={(n) => { setRowsPerPage(n); setPage(0); }}
+					onEdit={(user) => openEdit(user)}
+					onDelete={(user) => handleDelete(user)}
+				/>
+			)}
 
 			{isModalOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -184,5 +232,3 @@ export const Users: React.FC = () => {
 		</div>
 	);
 };
-
-

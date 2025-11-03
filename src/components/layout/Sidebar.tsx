@@ -125,9 +125,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
               placeholder={t('common.search') || 'Search...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full px-4 py-2.5 pl-10 pr-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-blue-400/30 focus:border-blue-400 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 placeholder:text-gray-400 dark:placeholder:text-gray-500 ${isRTL ? 'text-right' : 'text-left'}`}
+              className={`w-full px-4 py-2.5 ${isRTL ? 'pr-10 pl-3' : 'pl-10 pr-3'} rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-blue-400/30 focus:border-blue-400 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 placeholder:text-gray-400 dark:placeholder:text-gray-500 ${isRTL ? 'text-right' : 'text-left'} [&::-webkit-search-cancel-button]:hidden [&::-ms-clear]:hidden`}
             />
-            <svg className={`absolute top-2.5 ${isRTL ? 'right-3' : 'left-3'} w-5 h-5 text-gray-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <svg className={`absolute top-2.5 ${isRTL ? 'right-3' : 'left-3'} w-5 h-5 text-gray-400 pointer-events-none`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             {searchQuery && (
@@ -322,9 +322,9 @@ export const PermanentSidebar: React.FC<{ drawerWidth: number }> = ({ drawerWidt
               placeholder={t('common.search') || 'Search...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full px-4 py-2.5 pl-10 pr-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-blue-400/30 focus:border-blue-400 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 placeholder:text-gray-400 dark:placeholder:text-gray-500 ${isRTL ? 'text-right' : 'text-left'}`}
+              className={`w-full px-4 py-2.5 ${isRTL ? 'pr-10 pl-3' : 'pl-10 pr-3'} rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-blue-400/30 focus:border-blue-400 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 placeholder:text-gray-400 dark:placeholder:text-gray-500 ${isRTL ? 'text-right' : 'text-left'} [&::-webkit-search-cancel-button]:hidden [&::-ms-clear]:hidden`}
             />
-            <svg className={`absolute top-2.5 ${isRTL ? 'right-3' : 'left-3'} w-5 h-5 text-gray-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <svg className={`absolute top-2.5 ${isRTL ? 'right-3' : 'left-3'} w-5 h-5 text-gray-400 pointer-events-none`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             {searchQuery && (
