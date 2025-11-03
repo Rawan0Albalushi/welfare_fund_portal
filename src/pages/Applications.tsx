@@ -305,7 +305,7 @@ export const Applications: React.FC = () => {
               </div>
 
               {/* Modal Footer */}
-              <div className="flex justify-end gap-3 mt-6">
+              <div className={`flex justify-end gap-3 mt-6 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <button
                   onClick={handleCloseStatusDialog}
                   className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium"

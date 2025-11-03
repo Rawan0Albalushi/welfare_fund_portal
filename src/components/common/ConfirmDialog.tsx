@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   severity = 'warning',
 }) => {
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
 
   if (!open) return null;
 
@@ -41,7 +43,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       <div className="relative w-full max-w-sm rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card p-4">
         <h3 className="text-lg font-semibold mb-2">{title}</h3>
         <div className={`text-sm rounded-md px-3 py-2 mb-4 ${tone}`}>{message}</div>
-        <div className="flex justify-end gap-2">
+        <div className={`flex justify-end gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
           <button onClick={onCancel} disabled={loading} className="h-9 px-3 rounded-md border border-gray-200 dark:border-gray-700 disabled:opacity-50">
             {cancelText || t('common.cancel')}
           </button>
