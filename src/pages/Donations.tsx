@@ -58,6 +58,13 @@ export const Donations: React.FC = () => {
     date_to: toDate || undefined,
   });
 
+  const formatCurrency = React.useCallback((amount: number) => {
+    return new Intl.NumberFormat(isRTL ? 'ar-OM' : 'en-OM', {
+      style: 'currency',
+      currency: 'OMR',
+    }).format(amount);
+  }, [isRTL]);
+
   const columns: Column<Donation>[] = React.useMemo(() => [
     {
       id: 'id',
@@ -82,7 +89,7 @@ export const Donations: React.FC = () => {
       label: t('donations.amount'),
       minWidth: 120,
       sortable: true,
-      render: (value) => `$${value?.toLocaleString()}`,
+      render: (value) => formatCurrency(value || 0),
     },
     {
       id: 'type',
@@ -114,18 +121,11 @@ export const Donations: React.FC = () => {
       sortable: true,
       render: (value) => new Date(value).toLocaleDateString(),
     },
-  ], [t]);
+  ], [t, formatCurrency]);
 
   const handleSort = (field: string, direction: 'asc' | 'desc') => {
     setSortBy(field);
     setSortOrder(direction);
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
   };
 
   const handleExportExcel = async () => {

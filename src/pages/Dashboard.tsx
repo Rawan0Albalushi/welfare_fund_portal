@@ -1,16 +1,19 @@
 import React from 'react';
 // Icon placeholders
 import { useTranslation } from 'react-i18next';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useStats } from '../hooks/useDashboard';
 import { useDonations } from '../hooks/useDonations';
 import { useApplications } from '../hooks/useApplications';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
 import { StatCard } from '../components/common/StatCard';
+import { reportsService } from '../api/services/reports';
 
 export const Dashboard: React.FC = () => {
   const { t } = useTranslation();
-  const { data: stats, isLoading: statsLoading, error: statsError } = useStats();
+  const queryClient = useQueryClient();
+  const { data: stats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useStats();
   const { data: recentDonations, isLoading: donationsLoading, error: donationsError } = useDonations({
     per_page: 5,
     sort_by: 'created_at',
@@ -20,6 +23,30 @@ export const Dashboard: React.FC = () => {
     per_page: 5,
     sort_by: 'created_at',
     sort_order: 'desc',
+  });
+  
+  // Additional stats queries
+  // Use reportsService for accurate counts regardless of pagination behavior
+  const { data: donationsReport } = useQuery({
+    queryKey: ['reports','donations','all'],
+    queryFn: () => reportsService.getDonationsReport({ per_page: 1 }),
+    staleTime: 2 * 60 * 1000,
+  });
+  const { data: quickDonationsReport } = useQuery({
+    queryKey: ['reports','donations','quick'],
+    queryFn: () => reportsService.getDonationsReport({ type: 'quick', per_page: 1 }),
+    staleTime: 2 * 60 * 1000,
+  });
+  const { data: approvedApplications } = useApplications({
+    status: 'approved',
+    per_page: 1,
+  });
+  const { data: rejectedApplications } = useApplications({
+    status: 'rejected',
+    per_page: 1,
+  });
+  const { data: allApplications } = useApplications({
+    per_page: 1,
   });
 
   // Debug logging
@@ -98,15 +125,34 @@ export const Dashboard: React.FC = () => {
   const formatCurrency = (amount: number) => {
     try {
       if (typeof amount !== 'number' || isNaN(amount)) {
-        return '$0.00';
+        return 'ر.ع. 0.00';
       }
+      // Always format numbers in English regardless of site language
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'OMR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
       }).format(amount);
     } catch (error) {
       console.error('🚨 [Dashboard] Error formatting currency:', error);
-      return '$0.00';
+      return 'ر.ع. 0.00';
+    }
+  };
+
+  const formatNumber = (num: number) => {
+    try {
+      if (typeof num !== 'number' || isNaN(num)) {
+        return '0';
+      }
+      // Always format numbers in English regardless of site language
+      return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(num);
+    } catch (error) {
+      console.error('🚨 [Dashboard] Error formatting number:', error);
+      return String(num || 0);
     }
   };
 
@@ -133,25 +179,31 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const handleRefreshStats = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['stats'] });
+    await refetchStats();
+  };
+
   return (
     <div className="w-full">
-      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-6">{t('dashboard.title')}</h1>
-      
-      {/* Debug Info Panel */}
-      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <h3 className="text-blue-800 dark:text-blue-200 font-semibold mb-2">معلومات التشخيص</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <p><strong>API URL:</strong> {import.meta.env.VITE_API_URL || 'غير محدد'}</p>
-            <p><strong>حالة الإحصائيات:</strong> {statsLoading ? 'جاري التحميل...' : statsError ? 'خطأ' : 'تم التحميل'}</p>
-            <p><strong>حالة التبرعات:</strong> {donationsLoading ? 'جاري التحميل...' : donationsError ? 'خطأ' : 'تم التحميل'}</p>
-          </div>
-          <div>
-            <p><strong>حالة الطلبات:</strong> {applicationsLoading ? 'جاري التحميل...' : applicationsError ? 'خطأ' : 'تم التحميل'}</p>
-            <p><strong>Token موجود:</strong> {localStorage.getItem('admin_token') ? 'نعم' : 'لا'}</p>
-            <p><strong>المستخدم محفوظ:</strong> {localStorage.getItem('admin_user') ? 'نعم' : 'لا'}</p>
-          </div>
-        </div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t('dashboard.title')}</h1>
+        <button
+          onClick={handleRefreshStats}
+          disabled={statsLoading}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+          title="تحديث الإحصائيات"
+        >
+          <svg 
+            className={`w-4 h-4 ${statsLoading ? 'animate-spin' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>{statsLoading ? 'جاري التحديث...' : 'تحديث الإحصائيات'}</span>
+        </button>
       </div>
 
       {/* Stat Cards */}
@@ -250,32 +302,91 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-          <StatCard 
-            title={t('dashboard.total_donations')} 
-            value={stats?.total_donations ?? 0} 
-            icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>} 
-            color="primary"
-          />
-          <StatCard 
-            title={t('dashboard.total_amount')} 
-            value={formatCurrency(stats?.total_amount ?? 0)} 
-            icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>} 
-            color="success"
-          />
-          <StatCard 
-            title={t('dashboard.active_programs')} 
-            value={stats?.active_programs ?? 0} 
-            icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>} 
-            color="info"
-          />
-          <StatCard 
-            title={t('dashboard.pending_applications')} 
-            value={stats?.pending_applications ?? 0} 
-            icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>} 
-            color="warning"
-          />
-        </div>
+        <>
+          {/* Main Stats Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+            <StatCard 
+              title={t('dashboard.total_donations')} 
+              value={formatNumber(stats?.total_donations ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>} 
+              color="primary"
+            />
+            <StatCard 
+              title={t('dashboard.total_amount')} 
+              value={formatCurrency(stats?.total_amount ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>} 
+              color="success"
+            />
+            <StatCard 
+              title={t('dashboard.active_programs')} 
+              value={formatNumber(stats?.active_programs ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>} 
+              color="info"
+            />
+            <StatCard 
+              title={t('dashboard.pending_applications')} 
+              value={formatNumber(stats?.pending_applications ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>} 
+              color="warning"
+            />
+          </div>
+          
+          {/* Additional Stats Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <StatCard 
+              title={t('dashboard.quick_donations')} 
+              value={formatNumber(quickDonationsReport?.stats?.total_count ?? quickDonationsReport?.meta?.total ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 7L2 4v11l10 5 10-5V4l-10 5z"/></svg>} 
+              color="info"
+            />
+            <StatCard 
+              title={t('dashboard.paid_donations')} 
+              value={formatNumber(donationsReport?.stats?.paid_count ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>} 
+              color="success"
+            />
+            <StatCard 
+              title={t('dashboard.approved_applications')} 
+              value={formatNumber(approvedApplications?.total ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>} 
+              color="success"
+            />
+            <StatCard 
+              title={t('dashboard.rejected_applications')} 
+              value={formatNumber(rejectedApplications?.total ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>} 
+              color="error"
+            />
+          </div>
+          
+          {/* Third Stats Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <StatCard 
+              title={t('dashboard.total_applications')} 
+              value={formatNumber(allApplications?.total ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>} 
+              color="primary"
+            />
+            <StatCard 
+              title={t('dashboard.expired_donations')} 
+              value={formatNumber(donationsReport?.stats?.expired_count ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>} 
+              color="secondary"
+            />
+            <StatCard 
+              title={t('dashboard.failed_donations')} 
+              value={formatNumber(donationsReport?.stats?.failed_count ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>} 
+              color="error"
+            />
+            <StatCard 
+              title={t('dashboard.pending_donations')} 
+              value={formatNumber(donationsReport?.stats?.pending_count ?? 0)} 
+              icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>} 
+              color="warning"
+            />
+          </div>
+        </>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -330,10 +441,34 @@ export const Dashboard: React.FC = () => {
                 <tbody>
                   {donationsData && Array.isArray(donationsData) ? donationsData.map((donation) => {
                     try {
+                      // Get amount - check both amount and paid_amount fields
+                      // Also handle string conversion and null/undefined cases
+                      let donationAmount = 0;
+                      if (donation?.amount !== undefined && donation?.amount !== null) {
+                        donationAmount = typeof donation.amount === 'string' 
+                          ? parseFloat(donation.amount) || 0 
+                          : donation.amount;
+                      } else if (donation?.paid_amount !== undefined && donation?.paid_amount !== null) {
+                        donationAmount = typeof donation.paid_amount === 'string' 
+                          ? parseFloat(donation.paid_amount) || 0 
+                          : donation.paid_amount;
+                      }
+                      
+                      // Debug log if amount is 0 to help diagnose
+                      if (donationAmount === 0 && donation?.id) {
+                        console.warn('⚠️ [Dashboard] Donation with 0 amount:', {
+                          id: donation.id,
+                          donation_id: donation.donation_id,
+                          amount: donation.amount,
+                          paid_amount: donation.paid_amount,
+                          fullDonation: donation
+                        });
+                      }
+                      
                       return (
                         <tr key={donation?.id || Math.random()} className="border-b last:border-0 border-gray-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                           <td className="py-2 pr-4">{donation?.donor_name || 'N/A'}</td>
-                          <td className="py-2 pr-4">{formatCurrency(donation?.amount || 0)}</td>
+                          <td className="py-2 pr-4">{formatCurrency(donationAmount)}</td>
                           <td className="py-2 pr-4">{getStatusPill(donation?.status || 'unknown')}</td>
                           <td className="py-2 pr-4">{donation?.created_at ? new Date(donation.created_at).toLocaleDateString() : 'N/A'}</td>
                         </tr>
@@ -402,7 +537,7 @@ export const Dashboard: React.FC = () => {
                     try {
                       return (
                         <tr key={application?.id || Math.random()} className="border-b last:border-0 border-gray-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                      <td className="py-2 pr-4">{application?.student_name || application?.personal_json?.name || 'N/A'}</td>
+                      <td className="py-2 pr-4">{application?.personal_json?.name || application?.student_name || application?.user?.name || 'N/A'}</td>
                           <td className="py-2 pr-4">{application?.program?.title_ar || application?.program?.title_en || application?.program?.title || 'N/A'}</td>
                           <td className="py-2 pr-4">{getStatusPill(application?.status || 'unknown')}</td>
                           <td className="py-2 pr-4">{application?.created_at ? new Date(application.created_at).toLocaleDateString() : 'N/A'}</td>
