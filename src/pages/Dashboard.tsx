@@ -8,10 +8,12 @@ import { useApplications } from '../hooks/useApplications';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
 import { StatCard } from '../components/common/StatCard';
+import { useLanguage } from '../contexts/LanguageContext';
 import { reportsService } from '../api/services/reports';
 
 export const Dashboard: React.FC = () => {
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const queryClient = useQueryClient();
   const { data: stats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useStats();
   const { data: recentDonations, isLoading: donationsLoading, error: donationsError } = useDonations({
@@ -431,7 +433,7 @@ export const Dashboard: React.FC = () => {
             <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-left text-slate-600 dark:text-slate-400 border-b border-gray-300 dark:border-gray-600 bg-slate-50 dark:bg-slate-800/50">
+                  <tr className={`${isRTL ? 'text-right' : 'text-left'} text-slate-600 dark:text-slate-400 border-b border-gray-300 dark:border-gray-600 bg-slate-50 dark:bg-slate-800/50`}>
                     <th className="py-2 pr-4">{t('donations.donor_name')}</th>
                     <th className="py-2 pr-4">{t('donations.amount')}</th>
                     <th className="py-2 pr-4">{t('donations.donation_status')}</th>
@@ -525,7 +527,7 @@ export const Dashboard: React.FC = () => {
             <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-left text-slate-600 dark:text-slate-400 border-b border-gray-300 dark:border-gray-600 bg-slate-50 dark:bg-slate-800/50">
+                  <tr className={`${isRTL ? 'text-right' : 'text-left'} text-slate-600 dark:text-slate-400 border-b border-gray-300 dark:border-gray-600 bg-slate-50 dark:bg-slate-800/50`}>
                     <th className="py-2 pr-4">{t('applications.student_name')}</th>
                     <th className="py-2 pr-4">{t('applications.program')}</th>
                     <th className="py-2 pr-4">{t('applications.application_status')}</th>

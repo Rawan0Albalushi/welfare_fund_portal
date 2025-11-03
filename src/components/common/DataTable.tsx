@@ -1,6 +1,7 @@
 import React from 'react';
 // Replaced MUI icons with simple unicode icons for lightweight UI
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export interface Column<T> {
   id: keyof T | string;
@@ -47,6 +48,7 @@ export const DataTable = <T extends Record<string, any>>({
   emptyMessage,
 }: DataTableProps<T>) => {
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
 
   const handleSort = (columnId: string) => {
     if (!onSort) return;
@@ -93,11 +95,11 @@ export const DataTable = <T extends Record<string, any>>({
   return (
     <div className="w-full overflow-hidden rounded-2xl border border-gray-200/70 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card">
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
+        <table className={`min-w-full text-sm ${isRTL ? 'text-right' : 'text-left'}`}>
           <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800/60 backdrop-blur z-10">
-            <tr className="text-left text-gray-600 dark:text-gray-300">
+            <tr className={`${isRTL ? 'text-right' : 'text-left'} text-gray-600 dark:text-gray-300`}>
               {columns.map((column) => (
-                <th key={String(column.id)} style={{ minWidth: column.minWidth }} className={`px-2 sm:px-4 py-3 text-xs sm:text-sm ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'}`}>
+                <th key={String(column.id)} style={{ minWidth: column.minWidth }} className={`px-2 sm:px-4 py-3 text-xs sm:text-sm ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : isRTL ? 'text-right' : 'text-left'}`}>
                   {column.sortable ? (
                     <button onClick={() => handleSort(String(column.id))} className={`inline-flex items-center gap-1 ${sortBy === column.id ? 'font-semibold' : ''}`}>
                       <span>{column.label}</span>
@@ -111,7 +113,7 @@ export const DataTable = <T extends Record<string, any>>({
                 </th>
               ))}
               {(onEdit || onDelete || onView) && (
-                <th className="px-2 sm:px-4 py-3 text-center min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm">{t('common.actions')}</th>
+                <th className={`px-2 sm:px-4 py-3 text-center min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm`}>{t('common.actions')}</th>
               )}
             </tr>
           </thead>
@@ -119,7 +121,7 @@ export const DataTable = <T extends Record<string, any>>({
             {data.map((row, index) => (
               <tr key={index} className="border-t border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/30">
                 {columns.map((column) => (
-                  <td key={String(column.id)} className={`px-2 sm:px-4 py-3 text-xs sm:text-sm ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'}`}>
+                  <td key={String(column.id)} className={`px-2 sm:px-4 py-3 text-xs sm:text-sm ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : isRTL ? 'text-right' : 'text-left'}`}>
                     {(() => {
                       const value = String(column.id).includes('.')
                         ? String(column.id).split('.').reduce((obj: any, key: string) => obj?.[key], row)
@@ -159,9 +161,9 @@ export const DataTable = <T extends Record<string, any>>({
         </table>
       </div>
       {totalCount > 0 && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 py-2 border-t border-gray-300 dark:border-gray-600 text-xs sm:text-sm gap-3">
-          {/* Left: rows per page */}
-          <div className="flex items-center gap-2">
+        <div className={`flex flex-col sm:flex-row items-start sm:items-center ${isRTL ? 'sm:justify-between' : 'sm:justify-between'} px-3 py-2 border-t border-gray-300 dark:border-gray-600 text-xs sm:text-sm gap-3`}>
+          {/* Rows per page */}
+          <div className={`flex items-center gap-2 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
             <span className="hidden sm:inline">{t('common.rows_per_page') || 'Rows per page'}</span>
             <span className="sm:hidden">Per page:</span>
             <select
@@ -187,7 +189,7 @@ export const DataTable = <T extends Record<string, any>>({
             })()}
           </div>
 
-          {/* Right: pagination controls */}
+          {/* Pagination controls */}
           {(() => {
             const totalPages = Math.max(1, Math.ceil(totalCount / (rowsPerPage || 1)));
             const atFirst = page <= 0;
@@ -196,7 +198,7 @@ export const DataTable = <T extends Record<string, any>>({
             const goTo = (p: number) => onPageChange?.(Math.min(totalPages - 1, Math.max(0, p)));
 
             return (
-              <div className="flex items-center gap-1 sm:gap-2">
+              <div className={`flex items-center gap-1 sm:gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <button
                   aria-label="First page"
                   className="px-2 py-1 rounded border border-indigoSoft-200 dark:border-gray-700 disabled:opacity-50"

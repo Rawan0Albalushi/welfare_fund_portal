@@ -109,11 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
         {/* Logo Section - Modern */}
         <div className="px-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 dark:from-blue-500 dark:via-purple-500 dark:to-pink-500 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 hover:scale-105">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-              </svg>
-            </div>
+            <img src="/images/welfarefund.jpg" alt="Welfare Fund logo" className="h-12 w-auto rounded-xl object-contain bg-white shadow-lg shadow-blue-500/30" />
             <div>
               <h2 className="font-bold text-sm text-gray-900 dark:text-gray-100">Welfare Fund</h2>
               <p className="text-xs text-gray-500 dark:text-gray-400">Admin Portal</p>
@@ -176,11 +172,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
                 </span>
 
                 {/* Label */}
-                <span className={`relative truncate flex-1 text-left ${selected ? 'font-semibold' : ''}`}>{item.label}</span>
+                <span className={`relative truncate flex-1 ${isRTL ? 'text-right' : 'text-left'} ${selected ? 'font-semibold' : ''}`}>{item.label}</span>
 
                 {/* Arrow indicator */}
                 {selected && (
-                  <svg className="w-4 h-4 text-white flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className={`w-4 h-4 text-white flex-shrink-0 ${isRTL ? 'rotate-180' : ''}`} fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                   </svg>
                 )}
@@ -310,11 +306,7 @@ export const PermanentSidebar: React.FC<{ drawerWidth: number }> = ({ drawerWidt
         {/* Logo Section - Modern */}
         <div className="px-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 dark:from-blue-500 dark:via-purple-500 dark:to-pink-500 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 hover:scale-105">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-              </svg>
-            </div>
+            <img src="/images/welfarefund.jpg" alt="Welfare Fund logo" className="h-12 w-auto rounded-xl object-contain bg-white shadow-lg shadow-blue-500/30" />
             <div>
               <h2 className="font-bold text-sm text-gray-900 dark:text-gray-100">Welfare Fund</h2>
               <p className="text-xs text-gray-500 dark:text-gray-400">Admin Portal</p>
@@ -377,11 +369,11 @@ export const PermanentSidebar: React.FC<{ drawerWidth: number }> = ({ drawerWidt
                 </span>
 
                 {/* Label */}
-                <span className={`relative truncate flex-1 text-left ${selected ? 'font-semibold' : ''}`}>{item.label}</span>
+                <span className={`relative truncate flex-1 ${isRTL ? 'text-right' : 'text-left'} ${selected ? 'font-semibold' : ''}`}>{item.label}</span>
 
                 {/* Arrow indicator */}
                 {selected && (
-                  <svg className="w-4 h-4 text-white flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className={`w-4 h-4 text-white flex-shrink-0 ${isRTL ? 'rotate-180' : ''}`} fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                   </svg>
                 )}

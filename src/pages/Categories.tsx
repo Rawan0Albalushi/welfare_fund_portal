@@ -330,7 +330,7 @@ export const Categories: React.FC = () => {
                   )}
                 />
               </div>
-              <div className="flex justify-end gap-2 mt-4">
+              <div className={`flex justify-end gap-2 mt-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <button type="button" onClick={handleCloseDialog} className="h-9 px-3 rounded-md border border-gray-200 dark:border-gray-700">
                   {t('common.cancel')}
                 </button>

@@ -35,6 +35,43 @@ export const Campaigns: React.FC = () => {
 
 	const { data: categoriesData } = useCategories({ per_page: 100 });
 
+	// Derived statistics for campaigns
+	const stats = React.useMemo(() => {
+		const totalCampaigns = items.length;
+		let activeCount = 0;
+		let completedCount = 0;
+		let goalSum = 0;
+		let collectedSum = 0;
+		let progressSum = 0;
+
+		for (const row of items as any[]) {
+			const goal = row?.goal_amount != null ? Number(row.goal_amount) : 0;
+			const collectedRaw = row?.collected_amount ?? row?.raised_amount ?? row?.total_donations ?? row?.sum_donations ?? 0;
+			const collected = collectedRaw != null ? Number(collectedRaw) : 0;
+			const computedStatus = goal > 0 && Number.isFinite(collected) && collected >= goal ? 'completed' : row?.status;
+			if (computedStatus === 'active') activeCount += 1;
+			if (computedStatus === 'completed') completedCount += 1;
+			goalSum += Number.isFinite(goal) ? goal : 0;
+			collectedSum += Number.isFinite(collected) ? collected : 0;
+			if (goal > 0) {
+				progressSum += Math.min(collected / goal, 1);
+			}
+		}
+
+		const progressPct = goalSum > 0 ? Math.min((collectedSum / goalSum) * 100, 100) : 0;
+		const avgProgressPct = totalCampaigns > 0 ? (progressSum / totalCampaigns) * 100 : 0;
+
+		return {
+			totalCampaigns,
+			activeCount,
+			completedCount,
+			goalSum,
+			collectedSum,
+			progressPct,
+			avgProgressPct,
+		};
+	}, [items]);
+
 	// list controls
 	const [page, setPage] = React.useState(0);
 	const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -97,7 +134,7 @@ export const Campaigns: React.FC = () => {
 	const openEdit = (c: any) => {
 		setEditingId(c.id);
 		setForm({
-			category_id: c.category_id ?? ('' as unknown as number | ''),
+			category_id: ((c.category_id ?? c.category?.id) ?? ('' as unknown as number | '')) as any,
 			title_ar: c.title_ar ?? '',
 			title_en: c.title_en ?? '',
 			description_ar: c.description_ar ?? '',
@@ -198,6 +235,10 @@ export const Campaigns: React.FC = () => {
 
 	return (
 		<div className="w-full space-y-6">
+			{(() => {
+				// no-op IIFE to keep block-scoped helper variables without changing indentation elsewhere
+				return null;
+			})()}
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 				<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t('campaigns.title')}</h1>
 				<button
@@ -206,6 +247,37 @@ export const Campaigns: React.FC = () => {
 				>
 					+ New Campaign
 				</button>
+			</div>
+
+			{/* Stats - match design used in other pages (stat-card) */}
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+				<div className="stat-card stat-card-total">
+					<div className="stat-card-icon bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">📦</div>
+					<div className="stat-card-value">{stats.totalCampaigns.toLocaleString()}</div>
+					<div className="stat-card-label">Total Campaigns</div>
+					<div className="stat-card-subtitle"></div>
+				</div>
+
+				<div className="stat-card stat-card-info">
+					<div className="stat-card-icon bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400">🟢</div>
+					<div className="stat-card-value">{stats.activeCount.toLocaleString()}</div>
+					<div className="stat-card-label">Active</div>
+					<div className="stat-card-subtitle"></div>
+				</div>
+
+				<div className="stat-card stat-card-approved">
+					<div className="stat-card-icon bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">✅</div>
+					<div className="stat-card-value">{stats.completedCount.toLocaleString()}</div>
+					<div className="stat-card-label">Completed</div>
+					<div className="stat-card-subtitle"></div>
+				</div>
+
+				<div className="stat-card stat-card-amount">
+					<div className="stat-card-icon bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400">📈</div>
+					<div className="stat-card-value">{stats.progressPct.toFixed(0)}%</div>
+					<div className="stat-card-label">Overall Progress</div>
+					<div className="stat-card-subtitle"></div>
+				</div>
 			</div>
 
 			{error && <div className="text-red-600 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">{error}</div>}
@@ -282,17 +354,32 @@ export const Campaigns: React.FC = () => {
 						</form>
 					</div>
 				</div>
+			{(() => {
+				const enrichedItems = items.map((row: any) => {
+					const collectedRaw = row?.collected_amount ?? row?.raised_amount ?? row?.total_donations ?? row?.sum_donations ?? 0;
+					const collected = collectedRaw != null ? Number(collectedRaw) : 0;
+					const goal = row?.goal_amount != null ? Number(row.goal_amount) : null;
+					const computedStatus = goal != null && Number.isFinite(goal) && Number.isFinite(collected) && collected >= goal ? 'completed' : row.status;
+					return { ...row, status: computedStatus };
+				});
+				return (
 			<DataTable
 				columns={[
 					{ id: 'id', label: 'ID', minWidth: 60 },
 					{ id: 'title_ar', label: 'العنوان (AR)', minWidth: 150 },
 					{ id: 'title_en', label: 'Title (EN)', minWidth: 150 },
 					{ id: 'status', label: 'Status', minWidth: 120 },
-					{ id: 'goal_amount', label: 'Goal', minWidth: 100, render: (v) => (v != null ? Number(v).toLocaleString() : '-') },
+					{ id: 'goal_amount', label: 'Goal', minWidth: 140, render: (v, row) => {
+						const collectedRaw = (row as any)?.collected_amount ?? (row as any)?.raised_amount ?? (row as any)?.total_donations ?? (row as any)?.sum_donations ?? 0;
+						const collected = collectedRaw != null ? Number(collectedRaw) : 0;
+						const goal = v != null ? Number(v) : null;
+						if (goal == null) return '-';
+						return `${collected.toLocaleString()} / ${goal.toLocaleString()}`;
+					}},
 					{ id: 'start_date', label: 'Start', minWidth: 120, render: (v) => (v ? new Date(v).toLocaleDateString() : '-') },
 					{ id: 'end_date', label: 'End', minWidth: 120, render: (v) => (v ? new Date(v).toLocaleDateString() : '-') },
 				]}
-				data={items}
+				data={enrichedItems}
 				loading={loading}
 				page={page}
 				rowsPerPage={rowsPerPage}
@@ -302,6 +389,8 @@ export const Campaigns: React.FC = () => {
 				onEdit={(row) => openEdit(row)}
 				onDelete={(row) => setDeleteTarget(row)}
 			/>
+			);
+			})()}
 
 			{isModalOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -316,14 +405,14 @@ export const Campaigns: React.FC = () => {
 								<div className="md:col-span-1">
 									<label className="block text-sm mb-1">Category</label>
 									<select
-										value={form.category_id as any as string}
+										value={(form.category_id === '' ? '' : String(form.category_id)) as any as string}
 										onChange={(e) => setForm({ ...form, category_id: (e.target.value === '' ? '' : Number(e.target.value)) as any })}
 										required
 										className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
 									>
 										<option value="">Select category</option>
 										{(categoriesData?.data || []).map((cat) => (
-											<option key={cat.id} value={cat.id}>{cat.name_ar} - {cat.name_en}</option>
+											<option key={cat.id} value={String(cat.id)}>{cat.name_ar} - {cat.name_en}</option>
 										))}
 									</select>
 								</div>
