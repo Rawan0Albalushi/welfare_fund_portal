@@ -7,7 +7,7 @@ const mapApiProgramToUi = (p: any): Program => ({
   created_at: p.created_at,
   updated_at: p.updated_at,
   deleted_at: p.deleted_at,
-  category_id: p.category_id,
+  category_id: p.category_id ?? null,
   title_ar: p.title_ar ?? '',
   title_en: p.title_en ?? '',
   description_ar: p.description_ar,
@@ -17,9 +17,6 @@ const mapApiProgramToUi = (p: any): Program => ({
 
 const mapUiToApiPayload = (data: Partial<CreateProgramRequest | UpdateProgramRequest>) => {
   const payload: Record<string, any> = {};
-  if (data.category_id !== undefined) {
-    payload.category_id = data.category_id;
-  }
   if (data.title_ar !== undefined) {
     payload.title_ar = data.title_ar;
   }

@@ -144,6 +144,7 @@
     "donation_type": "نوع التبرع",
     "donation_status": "حالة التبرع",
     "program": "البرنامج",
+    "campaign": "الحملة",
     "created_at": "تاريخ الإنشاء",
     "no_donations": "لا توجد تبرعات",
     "view_details": "عرض التفاصيل",
@@ -168,6 +169,7 @@
     "amount_label": "المبلغ",
     "status_label": "الحالة",
     "program_label": "البرنامج",
+    "campaign_label": "الحملة",
     "created_label": "تاريخ الإنشاء",
     "close": "إغلاق",
     "maksab_fee_15": "نسبة مكسب 15%"

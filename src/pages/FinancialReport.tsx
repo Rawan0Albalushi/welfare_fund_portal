@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
 import { reportsService } from '../api/services/reports';
+import { campaignsService } from '../api/services/campaigns';
 import { useDonations } from '../hooks/useDonations';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
 import { DataTable, type Column } from '../components/common/DataTable';
 import type { FinancialReportResponse } from '../api/services/reports';
-import type { Donation } from '../types';
+import type { Campaign, Donation } from '../types';
 
 export const FinancialReport: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -25,6 +26,7 @@ export const FinancialReport: React.FC = () => {
   });
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
   const [exporting, setExporting] = useState<'excel' | 'pdf' | null>(null);
+  const [campaigns, setCampaigns] = React.useState<Campaign[]>([]);
   
   // Donations pagination state
   const [donationsPage, setDonationsPage] = useState(0);
@@ -55,6 +57,25 @@ export const FinancialReport: React.FC = () => {
     void loadReport();
   }, []);
 
+  React.useEffect(() => {
+    let isMounted = true;
+    const loadCampaigns = async () => {
+      try {
+        const response = await campaignsService.getCampaigns({ per_page: 200 });
+        if (isMounted) {
+          setCampaigns(response.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to load campaigns:', error);
+      }
+    };
+
+    void loadCampaigns();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Fetch donations for the donations table
   const { data: donationsData, isLoading: donationsLoading } = useDonations({
     page: donationsPage + 1,
@@ -64,6 +85,13 @@ export const FinancialReport: React.FC = () => {
     date_from: fromDate || undefined,
     date_to: toDate || undefined,
   });
+
+  const campaignsLookup = React.useMemo(() => {
+    return campaigns.reduce<Record<number, Campaign>>((acc, campaign) => {
+      acc[campaign.id] = campaign;
+      return acc;
+    }, {});
+  }, [campaigns]);
 
   const handleExportExcel = async () => {
     try {
@@ -187,10 +215,15 @@ export const FinancialReport: React.FC = () => {
       ),
     },
     {
-      id: 'program.title',
-      label: t('donations.program'),
+      id: 'campaign.title',
+      label: t('donations.campaign'),
       minWidth: 150,
-      render: (_, row) => row.program?.title_ar || row.program?.title_en || 'N/A',
+      render: (_, row) => {
+        const campaign = row.campaign ?? (row.campaign_id ? campaignsLookup[row.campaign_id] : undefined);
+        const arTitle = campaign?.title_ar;
+        const enTitle = campaign?.title_en;
+        return isRTL ? (arTitle || enTitle) : (enTitle || arTitle) || 'N/A';
+      },
     },
     {
       id: 'created_at',
@@ -199,7 +232,7 @@ export const FinancialReport: React.FC = () => {
       sortable: true,
       render: (value) => new Date(value).toLocaleDateString(),
     },
-  ], [t, formatCurrency]);
+  ], [t, formatCurrency, isRTL, campaignsLookup]);
 
   return (
     <div className="w-full space-y-6">

@@ -1,26 +1,5 @@
 import apiClient from '../axios';
-import { type PaginatedResponse, type QueryParams } from '../../types';
-
-export interface Campaign {
-	id: number;
-	title_ar: string;
-	title_en: string;
-  description_ar?: string;
-  description_en?: string;
-  goal_amount?: number;
-  status: 'draft' | 'active' | 'paused' | 'completed' | 'archived';
-  category_id: number;
-  image?: string;
-  image_url?: string;
-  start_date?: string; // ISO date
-  end_date?: string;   // ISO date
-  target_donors?: number;
-  impact_description_ar?: string;
-  impact_description_en?: string;
-  campaign_highlights?: string[];
-	created_at?: string;
-	updated_at?: string;
-}
+import { type Campaign, type PaginatedResponse, type QueryParams } from '../../types';
 
 export interface CreateCampaignRequest {
   category_id: number;

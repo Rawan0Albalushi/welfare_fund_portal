@@ -51,6 +51,26 @@ export interface CreateProgramRequest {
 
 export interface UpdateProgramRequest extends Partial<CreateProgramRequest> {}
 
+// Campaign types
+export interface Campaign extends BaseEntity {
+  category_id?: number | null;
+  title_ar: string;
+  title_en: string;
+  description_ar?: string | null;
+  description_en?: string | null;
+  goal_amount?: number | null;
+  image?: string | null;
+  image_url?: string | null;
+  status?: 'draft' | 'active' | 'paused' | 'completed' | 'archived';
+  start_date?: string | null;
+  end_date?: string | null;
+  target_donors?: number | null;
+  impact_description_ar?: string | null;
+  impact_description_en?: string | null;
+  campaign_highlights?: string[] | null;
+  deleted_at?: string | null;
+}
+
 // Donation types
 export interface Donation extends BaseEntity {
   donation_id: string;
@@ -74,6 +94,7 @@ export interface Donation extends BaseEntity {
   payment_url?: string | null;
   paid_amount?: number | null;
   program?: Program;
+  campaign?: Campaign;
   user?: User;
 }
 

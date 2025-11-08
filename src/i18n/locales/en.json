@@ -144,6 +144,7 @@
     "donation_type": "Type",
     "donation_status": "Status",
     "program": "Program",
+    "campaign": "Campaign",
     "created_at": "Created At",
     "no_donations": "No donations found",
     "view_details": "View Details",
@@ -168,6 +169,7 @@
     "amount_label": "Amount",
     "status_label": "Status",
     "program_label": "Program",
+    "campaign_label": "Campaign",
     "created_label": "Created At",
     "close": "Close",
     "maksab_fee_15": "Maksab fee 15%"
