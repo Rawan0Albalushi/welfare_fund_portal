@@ -65,11 +65,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </div>
       </main>
 
-      {/* Global Snackbar (Professional) */}
+      {/* Global Snackbar (Top, Responsive) */}
       {snackbarOpen && (
-        <div className="fixed bottom-6 right-6 z-[9999] animate-slide-in-right">
+        <div
+          className="fixed left-1/2 z-[9999] -translate-x-1/2 animate-slide-in-right"
+          style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
+        >
           <div
-            className={`min-w-[320px] max-w-md px-6 py-4 rounded-xl shadow-lg border backdrop-blur-sm ${
+            role="status"
+            aria-live="polite"
+            className={`px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-lg border backdrop-blur-sm ${
               snackbarSeverity === 'success'
                 ? 'bg-emerald-50/95 border-emerald-200 text-emerald-800 dark:bg-emerald-900/95 dark:border-emerald-800 dark:text-emerald-200'
                 : snackbarSeverity === 'info'
@@ -78,6 +83,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 ? 'bg-amber-50/95 border-amber-200 text-amber-800 dark:bg-amber-900/95 dark:border-amber-800 dark:text-amber-200'
                 : 'bg-rose-50/95 border-rose-200 text-rose-800 dark:bg-rose-900/95 dark:border-rose-800 dark:text-rose-200'
             }`}
+            style={{ width: 'min(92vw, 480px)' }}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
@@ -92,7 +98,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 }`}>
                   {snackbarSeverity === 'success' ? '✓' : snackbarSeverity === 'info' ? 'i' : snackbarSeverity === 'warning' ? '!' : '✕'}
                 </div>
-                <div className="text-sm font-medium">{snackbarMessage}</div>
+                <div className="text-sm sm:text-sm font-medium leading-6">
+                  {snackbarMessage}
+                </div>
               </div>
               <button
                 className="opacity-60 hover:opacity-100 transition-opacity p-1 -m-1"

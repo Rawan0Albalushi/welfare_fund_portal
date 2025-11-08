@@ -7,6 +7,7 @@ import { usePrograms, useCreateProgram, useUpdateProgram, useDeleteProgram } fro
 import { useCategories } from '../hooks/useCategories';
 import { DataTable, type Column } from '../components/common/DataTable';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
+import { Modal } from '../components/common/Modal';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
 import { type Program, type CreateProgramRequest, type UpdateProgramRequest } from '../types';
@@ -277,14 +278,32 @@ export const Programs: React.FC = () => {
         />
       )}
 
-      {/* Create/Edit Modal (Tailwind) */}
+      {/* Create/Edit Modal */}
       {openDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleCloseDialog} />
-          <div className="relative w-full max-w-2xl rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card p-4">
-            <h3 className="text-lg font-semibold mb-2">{editingProgram ? t('programs.edit_program') : t('programs.add_program')}</h3>
-            <form onSubmit={handleSubmit(handleSubmitForm)}>
-              <div className="flex flex-col gap-4">
+        <Modal
+          open={openDialog}
+          onClose={handleCloseDialog}
+          title={editingProgram ? (t('programs.edit_program') || '') : (t('programs.add_program') || '')}
+          icon={<span>🎯</span>}
+          size="lg"
+          footer={
+            <div className={`flex justify-end gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <button type="button" onClick={handleCloseDialog} className="h-9 px-3 rounded-md border border-gray-200 dark:border-gray-700">
+                {t('common.cancel')}
+              </button>
+              <button
+                form="program-form"
+                type="submit"
+                disabled={createProgramMutation.isPending || updateProgramMutation.isPending}
+                className="h-9 px-3 rounded-md text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
+              >
+                {createProgramMutation.isPending || updateProgramMutation.isPending ? t('common.loading') : t('common.save')}
+              </button>
+            </div>
+          }
+        >
+          <form id="program-form" onSubmit={handleSubmit(handleSubmitForm)}>
+            <div className="flex flex-col gap-4">
                 {/* Category Selection */}
                 <Controller
                   name="category_id"
@@ -427,23 +446,9 @@ export const Programs: React.FC = () => {
                     </div>
                   )}
                 />
-              </div>
-
-              <div className={`flex justify-end gap-2 mt-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                <button type="button" onClick={handleCloseDialog} className="h-9 px-3 rounded-md border border-gray-200 dark:border-gray-700">
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={createProgramMutation.isPending || updateProgramMutation.isPending}
-                  className="h-9 px-3 rounded-md text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
-                >
-                  {createProgramMutation.isPending || updateProgramMutation.isPending ? t('common.loading') : t('common.save')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+            </div>
+          </form>
+        </Modal>
       )}
 
       {/* Delete Confirmation Dialog */}

@@ -7,6 +7,8 @@ import { DataTable, type Column } from '../components/common/DataTable';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
 import { type StudentRegistration } from '../types';
+import { Modal } from '../components/common/Modal';
+import apiClient from '../api/axios';
 
 export const Applications: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -56,7 +58,7 @@ export const Applications: React.FC = () => {
       label: t('applications.student_name'),
       minWidth: 150,
       sortable: true,
-      render: (_, row) => row.personal_json?.name || row.student_name || 'N/A',
+      render: (_, row) => row.personal_json?.name || row.student_name || row.user?.name || 'N/A',
     },
     {
       id: 'program.title',
@@ -255,108 +257,99 @@ export const Applications: React.FC = () => {
 
       {/* Status Update Modal */}
       {statusDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleCloseStatusDialog} />
-          <div className="relative w-full max-w-md rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
-            {/* Modal Header */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-indigo-600 p-6">
-              <div className="absolute inset-0 bg-black/10"></div>
-              <div className="relative flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl">
-                  ✏️
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-white">{t('applications.update_status')}</h3>
-                  <p className="text-primary-100 text-sm">{i18n.language === 'en' ? 'Update Application Status' : ''}</p>
-                </div>
+        <Modal
+          open={!!statusDialog}
+          onClose={handleCloseStatusDialog}
+          title={t('applications.update_status') || ''}
+          icon={<span>✏️</span>}
+          size="md"
+          footer={
+            <div className={`flex justify-end gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <button
+                onClick={handleCloseStatusDialog}
+                className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleUpdateStatus}
+                disabled={updateStatusMutation.isPending}
+                className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl hover:from-primary-700 hover:to-primary-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+              >
+                {updateStatusMutation.isPending ? t('common.loading') : t('common.save')}
+              </button>
+            </div>
+          }
+        >
+          <div className="space-y-4 mb-2">
+            <div className="space-y-1">
+              <div className="text-sm text-slate-500 dark:text-slate-400">{t('applications.registration_id_label')}</div>
+              <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                {statusDialog.registration_id}
               </div>
             </div>
-
-            {/* Modal Content */}
-            <div className="p-6 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900">
-              <div className="space-y-4 mb-4">
-                <div className="space-y-1">
-                  <div className="text-sm text-slate-500 dark:text-slate-400">{t('applications.registration_id_label')}</div>
-                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    {statusDialog.registration_id}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-sm text-slate-500 dark:text-slate-400">{t('applications.student_name_label')}</div>
-                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    {statusDialog.personal_json?.name || statusDialog.student_name || 'N/A'}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-sm text-slate-500 dark:text-slate-400">{t('applications.program_label')}</div>
-                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    {isRTL ? (statusDialog.program?.title_ar || statusDialog.program?.title_en) : (statusDialog.program?.title_en || statusDialog.program?.title_ar) || 'N/A'}
-                  </div>
-                </div>
+            <div className="space-y-1">
+              <div className="text-sm text-slate-500 dark:text-slate-400">{t('applications.student_name_label')}</div>
+              <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                {statusDialog.personal_json?.name || statusDialog.student_name || statusDialog.user?.name || 'N/A'}
               </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('applications.new_status')}</label>
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                  dir={isRTL ? 'rtl' : 'ltr'}
-                >
-                  <option value="pending">{t('applications.pending')}</option>
-                  <option value="under_review">{t('applications.under_review')}</option>
-                  <option value="approved">{t('applications.approved')}</option>
-                  <option value="rejected">{t('applications.rejected')}</option>
-                </select>
-              </div>
-
-              {/* Modal Footer */}
-              <div className={`flex justify-end gap-3 mt-6 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                <button
-                  onClick={handleCloseStatusDialog}
-                  className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 font-medium"
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  onClick={handleUpdateStatus}
-                  disabled={updateStatusMutation.isPending}
-                  className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl hover:from-primary-700 hover:to-primary-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg font-medium"
-                >
-                  {updateStatusMutation.isPending ? t('common.loading') : t('common.save')}
-                </button>
+            </div>
+            <div className="space-y-1">
+              <div className="text-sm text-slate-500 dark:text-slate-400">{t('applications.program_label')}</div>
+              <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                {isRTL ? (statusDialog.program?.title_ar || statusDialog.program?.title_en) : (statusDialog.program?.title_en || statusDialog.program?.title_ar) || 'N/A'}
               </div>
             </div>
           </div>
-        </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('applications.new_status')}</label>
+            <select
+              value={newStatus}
+              onChange={(e) => setNewStatus(e.target.value)}
+              className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              dir={isRTL ? 'rtl' : 'ltr'}
+            >
+              <option value="pending">{t('applications.pending')}</option>
+              <option value="under_review">{t('applications.under_review')}</option>
+              <option value="approved">{t('applications.approved')}</option>
+              <option value="rejected">{t('applications.rejected')}</option>
+            </select>
+          </div>
+        </Modal>
       )}
 
       {/* View Details Modal */}
       {viewDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setViewDialog(null)} />
-          <div className="relative w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            {/* Modal Header */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-indigo-600 p-6">
-              <div className="absolute inset-0 bg-black/10"></div>
-              <div className="relative flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl">
-                  📋
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-white">{t('applications.registration_details')}</h3>
-                  <p className="text-primary-100 text-sm">{i18n.language === 'en' ? 'Student Registration Details' : ''}</p>
-                </div>
-              </div>
+        <Modal
+          open={!!viewDialog}
+          onClose={() => setViewDialog(null)}
+          title={t('applications.registration_details') || ''}
+          icon={<span>📋</span>}
+          size="xl"
+          footer={
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setViewDialog(null)}
+                className="px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+              >
+                {t('applications.close')}
+              </button>
             </div>
-
-            {/* Modal Content - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900">
+          }
+        >
+          <div className="max-h-[65vh] overflow-y-auto pr-1">
+              {/* Top summary */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-1">
+                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('applications.registration_id_label')}</div>
+                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    {viewDialog.registration_id}
+                  </div>
+                </div>
                 <div className="space-y-1">
                   <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('applications.student_name_label')}</div>
                   <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    {viewDialog.personal_json?.name || viewDialog.student_name || 'N/A'}
+                    {viewDialog.personal_json?.name || viewDialog.student_name || viewDialog.user?.name || 'N/A'}
                   </div>
                 </div>
                 <div className="space-y-1">
@@ -385,63 +378,209 @@ export const Applications: React.FC = () => {
                 </div>
               </div>
 
-              {/* Personal Info */}
-              <div className="mb-4">
-                <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('applications.personal_info')}</div>
-                <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                  <div className="text-xs font-mono text-slate-600 dark:text-slate-400 whitespace-pre-wrap break-words">
-                    {JSON.stringify({
-                      name: viewDialog.student_name || viewDialog.personal_json?.name,
-                      email: viewDialog.email || viewDialog.personal_json?.email,
-                      phone: viewDialog.phone || viewDialog.personal_json?.phone,
-                      student_id: viewDialog.student_id,
-                    }, null, 2)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Academic & Financial Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('applications.academic_info')}</div>
-                  <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    <div className="text-xs font-mono text-slate-600 dark:text-slate-400 whitespace-pre-wrap break-words">
-                      {JSON.stringify({
-                        university: viewDialog.university || viewDialog.academic_json?.university,
-                        college: viewDialog.college,
-                        major: viewDialog.major || viewDialog.academic_json?.major,
-                        academic_year: viewDialog.academic_year,
-                        gpa: viewDialog.gpa || viewDialog.academic_json?.gpa,
-                      }, null, 2)}
+              {/* All entered details (only backend-returned fields) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Personal Information */}
+                {(() => {
+                  const personalItems = [
+                    { label: 'Student ID', value: viewDialog.student_id },
+                    { label: 'Name', value: viewDialog.student_name ?? viewDialog.personal_json?.name ?? viewDialog.user?.name },
+                    { label: 'Email', value: viewDialog.email ?? viewDialog.personal_json?.email },
+                    { label: 'Phone', value: viewDialog.phone ?? viewDialog.personal_json?.phone },
+                    { label: 'Notes', value: viewDialog.notes },
+                  ].filter((i) => i.value !== null && i.value !== undefined && String(i.value) !== '');
+                  if (personalItems.length === 0) return null;
+                  return (
+                    <div className="space-y-3">
+                      <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('applications.personal_info')}</div>
+                      {personalItems.map((item, idx) => (
+                        <div key={`personal-${idx}`} className="space-y-1">
+                          <div className="text-xs text-slate-500 dark:text-slate-400">{item.label}</div>
+                          <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100">
+                            {String(item.value)}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('applications.financial_info')}</div>
-                  <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    <div className="text-xs font-mono text-slate-600 dark:text-slate-400 whitespace-pre-wrap break-words">
-                      {JSON.stringify({
-                        family_income: viewDialog.family_income || viewDialog.financial_json?.income,
-                        family_members: viewDialog.family_members,
-                        support_needed: viewDialog.support_needed,
-                      }, null, 2)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+                  );
+                })()}
 
-            {/* Modal Footer */}
-            <div className="flex justify-end gap-3 p-6 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-t border-slate-200 dark:border-slate-700">
-              <button
-                onClick={() => setViewDialog(null)}
-                className="px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
-              >
-                {t('applications.close')}
-              </button>
-            </div>
+                {/* Academic Information */}
+                {(() => {
+                  const academicItems = [
+                    { label: 'University', value: viewDialog.university ?? viewDialog.academic_json?.university },
+                    { label: 'College', value: viewDialog.college },
+                    { label: 'Major', value: viewDialog.major ?? viewDialog.academic_json?.major },
+                    { label: 'Academic Year', value: viewDialog.academic_year },
+                    { label: 'GPA', value: (viewDialog.gpa ?? viewDialog.academic_json?.gpa) },
+                  ].filter((i) => i.value !== null && i.value !== undefined && String(i.value) !== '');
+                  if (academicItems.length === 0) return null;
+                  return (
+                    <div className="space-y-3">
+                      <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('applications.academic_info')}</div>
+                      {academicItems.map((item, idx) => (
+                        <div key={`academic-${idx}`} className="space-y-1">
+                          <div className="text-xs text-slate-500 dark:text-slate-400">{item.label}</div>
+                          <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100">
+                            {String(item.value)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* Financial Information */}
+                {(() => {
+                  const financialItems = [
+                    { label: 'Family Income', value: (viewDialog.family_income ?? viewDialog.financial_json?.income) },
+                    { label: 'Family Members', value: viewDialog.family_members },
+                    { label: 'Support Needed', value: viewDialog.support_needed },
+                    { label: 'Expenses', value: viewDialog.financial_json?.expenses },
+                  ].filter((i) => i.value !== null && i.value !== undefined && String(i.value) !== '');
+                  if (financialItems.length === 0) return null;
+                  return (
+                    <div className="space-y-3">
+                      <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('applications.financial_info')}</div>
+                      {financialItems.map((item, idx) => (
+                        <div key={`financial-${idx}`} className="space-y-1">
+                          <div className="text-xs text-slate-500 dark:text-slate-400">{item.label}</div>
+                          <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100">
+                            {String(item.value)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* Attachments */}
+                {viewDialog.id_card_image ? (() => {
+                  // Helper function to build correct image URL
+                  const buildImageUrl = (imagePath: string): string => {
+                    if (!imagePath) return '';
+                    // If already absolute URL, return as is
+                    if (/^https?:\/\//i.test(imagePath)) return imagePath;
+                    
+                    // Get base URL (e.g., http://localhost:8000)
+                    const baseURL = apiClient.defaults.baseURL || '';
+                    const baseHost = baseURL.replace(/\/api\/v1\/admin\/?$/, '');
+                    
+                    // If path starts with /api/, it's already a full path
+                    if (imagePath.startsWith('/api/')) {
+                      return `${baseHost}${imagePath}`;
+                    }
+                    
+                    // If path starts with /, it's relative to base host
+                    if (imagePath.startsWith('/')) {
+                      return `${baseHost}${imagePath}`;
+                    }
+                    
+                    // Otherwise, assume it's relative to /api/v1/admin/students/id_cards/
+                    return `${baseURL}/students/id_cards/${imagePath.replace(/^\/+/, '')}`;
+                  };
+                  
+                  const imageUrl = buildImageUrl(viewDialog.id_card_image);
+                  
+                  return (
+                    <div className="space-y-3">
+                      <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">Attachments</div>
+                      <div className="space-y-1">
+                        <div className="text-xs text-slate-500 dark:text-slate-400">ID Card Image</div>
+                        <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100">
+                          {/* Preview */}
+                          <div className="flex items-start gap-3">
+                            <img
+                              src={imageUrl}
+                              alt="ID Card"
+                              className="max-h-40 rounded-lg border border-slate-200 dark:border-slate-700 object-contain bg-slate-50 dark:bg-slate-900"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                            />
+                            <div className="flex flex-col gap-2">
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    // Use the same URL building logic, but fetch via API with auth
+                                    const apiPath = viewDialog.id_card_image || '';
+                                    // If path starts with /api/, use it directly
+                                    const apiUrl = apiPath.startsWith('/api/') 
+                                      ? apiPath 
+                                      : apiPath.startsWith('/')
+                                        ? apiPath
+                                        : `/students/id_cards/${apiPath.replace(/^\/+/, '')}`;
+                                    
+                                    const response = await apiClient.get(apiUrl, { responseType: 'blob' });
+                                    const blobUrl = URL.createObjectURL(response.data);
+                                    window.open(blobUrl, '_blank', 'noopener');
+                                    // Clean up after a delay
+                                    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                                  } catch (err) {
+                                    console.error('Error fetching image:', err);
+                                    // Fallback: try to open the direct URL
+                                    window.open(imageUrl, '_blank', 'noopener');
+                                  }
+                                }}
+                                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-primary-200 text-primary-700 hover:bg-primary-50 dark:border-primary-900 dark:text-primary-300 dark:hover:bg-primary-900/20"
+                              >
+                                <span>Open full</span>
+                                <span aria-hidden>🔗</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    const apiPath = viewDialog.id_card_image || '';
+                                    const apiUrl = apiPath.startsWith('/api/') 
+                                      ? apiPath 
+                                      : apiPath.startsWith('/')
+                                        ? apiPath
+                                        : `/students/id_cards/${apiPath.replace(/^\/+/, '')}`;
+                                    
+                                    const response = await apiClient.get(apiUrl, { responseType: 'blob' });
+                                    const blob = response.data as Blob;
+                                    const blobUrl = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    // Try to infer filename from response or use default
+                                    const cd = (response.headers?.['content-disposition'] || response.headers?.['Content-Disposition']) as string | undefined;
+                                    const match = cd && /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(cd);
+                                    const filename = match 
+                                      ? decodeURIComponent((match[1] || match[2] || 'id-card')).replace(/\s+/g, '_')
+                                      : (apiPath.split('/').pop() || 'id-card') + (blob.type.includes('png') ? '.png' : blob.type.includes('jpg') || blob.type.includes('jpeg') ? '.jpg' : '');
+                                    a.href = blobUrl;
+                                    a.download = filename;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    a.remove();
+                                    URL.revokeObjectURL(blobUrl);
+                                  } catch (err) {
+                                    console.error('Error downloading image:', err);
+                                    // Fallback: try direct download
+                                    if (imageUrl) {
+                                      const a = document.createElement('a');
+                                      a.href = imageUrl;
+                                      a.download = viewDialog.id_card_image?.split('/').pop() || 'id-card.png';
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      a.remove();
+                                    }
+                                  }
+                                }}
+                                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                              >
+                                <span>Download</span>
+                                <span aria-hidden>⬇️</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })() : null}
+              </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Snackbar (Tailwind) */}

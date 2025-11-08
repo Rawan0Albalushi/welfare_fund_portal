@@ -11,6 +11,7 @@ export interface Campaign {
   status: 'draft' | 'active' | 'paused' | 'completed' | 'archived';
   category_id: number;
   image?: string;
+  image_url?: string;
   start_date?: string; // ISO date
   end_date?: string;   // ISO date
   target_donors?: number;
@@ -29,6 +30,7 @@ export interface CreateCampaignRequest {
   description_en: string;
   goal_amount: number;
   image?: string;
+  image_url?: string;
   status?: 'draft' | 'active' | 'paused' | 'completed' | 'archived';
   start_date?: string;
   end_date?: string;
@@ -124,6 +126,7 @@ export const campaignsService = {
 		const response = await apiClient.put(`/campaigns/${id}`, data);
 		return (response.data?.data ?? response.data) as Campaign;
 	},
+
 
 	deleteCampaign: async (id: number): Promise<void> => {
 		await apiClient.delete(`/campaigns/${id}`);

@@ -169,7 +169,8 @@
     "status_label": "الحالة",
     "program_label": "البرنامج",
     "created_label": "تاريخ الإنشاء",
-    "close": "إغلاق"
+    "close": "إغلاق",
+    "maksab_fee_15": "نسبة مكسب 15%"
   },
   "campaigns": {
     "title": "الحملات",
@@ -208,6 +209,7 @@
     "donors_count": "عدد المتبرعين",
     "anonymous_count": "متبرعين مجهولين",
     "average_donation": "متوسط التبرع",
+    "maksab_fee_15": "نسبة مكسب 15%",
     "by_status": "حسب الحالة",
     "by_type": "حسب النوع",
     "over_time": "التطور الزمني",
