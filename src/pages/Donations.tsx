@@ -9,7 +9,7 @@ import { reportsService } from '../api/services/reports';
 import { DataTable, type Column } from '../components/common/DataTable';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
-import { type Donation } from '../types';
+import { type Campaign, type Donation } from '../types';
 import { Modal } from '../components/common/Modal';
 
 export const Donations: React.FC = () => {
@@ -30,7 +30,7 @@ export const Donations: React.FC = () => {
   const [exporting, setExporting] = useState<'excel' | 'pdf' | null>(null);
   
   const { data: programsData } = usePrograms({ per_page: 100 });
-  const [campaigns, setCampaigns] = React.useState<any[]>([]);
+  const [campaigns, setCampaigns] = React.useState<Campaign[]>([]);
 
   // Load campaigns
   React.useEffect(() => {
@@ -58,6 +58,13 @@ export const Donations: React.FC = () => {
     date_from: fromDate || undefined,
     date_to: toDate || undefined,
   });
+
+  const campaignsLookup = React.useMemo(() => {
+    return campaigns.reduce<Record<number, Campaign>>((acc, campaign) => {
+      acc[campaign.id] = campaign;
+      return acc;
+    }, {});
+  }, [campaigns]);
 
   const formatCurrency = React.useCallback((amount: number) => {
     return new Intl.NumberFormat(isRTL ? 'ar-OM' : 'en-OM', {
@@ -110,10 +117,15 @@ export const Donations: React.FC = () => {
       sortable: true,
     },
     {
-      id: 'program.title',
-      label: t('donations.program'),
+      id: 'campaign.title',
+      label: t('donations.campaign'),
       minWidth: 150,
-      render: (_, row) => row.program?.title_ar || row.program?.title_en || 'N/A',
+      render: (_, row) => {
+        const campaign = row.campaign ?? (row.campaign_id ? campaignsLookup[row.campaign_id] : undefined);
+        const arTitle = campaign?.title_ar;
+        const enTitle = campaign?.title_en;
+        return isRTL ? (arTitle || enTitle) : (enTitle || arTitle) || 'N/A';
+      },
     },
     {
       id: 'created_at',
@@ -122,7 +134,7 @@ export const Donations: React.FC = () => {
       sortable: true,
       render: (value) => new Date(value).toLocaleDateString(),
     },
-  ], [t, formatCurrency]);
+  ], [t, formatCurrency, isRTL, campaignsLookup]);
 
   const handleSort = (field: string, direction: 'asc' | 'desc') => {
     setSortBy(field);
@@ -377,7 +389,7 @@ export const Donations: React.FC = () => {
               {/* Campaign Filter */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Campaign
+                  {t('donations.campaign')}
                 </label>
                 <select
                   value={campaignFilter}
@@ -489,9 +501,15 @@ export const Donations: React.FC = () => {
               </div>
             </div>
             <div className="space-y-1">
-              <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.program_label')}</div>
+              <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.campaign_label')}</div>
               <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                {isRTL ? (viewDialog.program?.title_ar || viewDialog.program?.title_en) : (viewDialog.program?.title_en || viewDialog.program?.title_ar) || 'N/A'}
+                {(() => {
+                  const campaign = viewDialog.campaign ?? (viewDialog.campaign_id ? campaignsLookup[viewDialog.campaign_id] : undefined);
+                  const arTitle = campaign?.title_ar;
+                  const enTitle = campaign?.title_en;
+                  const title = isRTL ? (arTitle || enTitle) : (enTitle || arTitle);
+                  return title || 'N/A';
+                })()}
               </div>
             </div>
             <div className="space-y-1">

@@ -4,7 +4,6 @@ import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
 import { usePrograms, useCreateProgram, useUpdateProgram, useDeleteProgram } from '../hooks/usePrograms';
-import { useCategories } from '../hooks/useCategories';
 import { DataTable, type Column } from '../components/common/DataTable';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { Modal } from '../components/common/Modal';
@@ -41,8 +40,6 @@ export const Programs: React.FC = () => {
     status: statusFilter,
   });
 
-  const { data: categoriesData } = useCategories({ per_page: 100 });
-
   const createProgramMutation = useCreateProgram();
   const updateProgramMutation = useUpdateProgram();
   const deleteProgramMutation = useDeleteProgram();
@@ -54,7 +51,6 @@ export const Programs: React.FC = () => {
     formState: { errors },
   } = useForm<CreateProgramRequest>({
     defaultValues: {
-      category_id: 0,
       title_ar: '',
       title_en: '',
       description_ar: '',
@@ -101,7 +97,6 @@ export const Programs: React.FC = () => {
     if (program) {
       setEditingProgram(program);
       reset({
-        category_id: program.category_id,
         title_ar: program.title_ar,
         title_en: program.title_en,
         description_ar: program.description_ar || '',
@@ -111,7 +106,6 @@ export const Programs: React.FC = () => {
     } else {
       setEditingProgram(null);
       reset({
-        category_id: 0,
         title_ar: '',
         title_en: '',
         description_ar: '',
@@ -304,34 +298,6 @@ export const Programs: React.FC = () => {
         >
           <form id="program-form" onSubmit={handleSubmit(handleSubmitForm)}>
             <div className="flex flex-col gap-4">
-                {/* Category Selection */}
-                <Controller
-                  name="category_id"
-                  control={control}
-                  rules={{ required: 'الفئة مطلوبة', min: { value: 1, message: 'يرجى اختيار فئة' } }}
-                  render={({ field }) => (
-                    <div>
-                      <label className="block text-sm mb-1 font-semibold">
-                        الفئة <span className="text-rose-500">*</span>
-                      </label>
-                      <select
-                        {...field}
-                        value={field.value}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        className={`w-full h-10 px-3 rounded-md border ${errors.category_id ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                      >
-                        <option value="0">اختر الفئة</option>
-                        {(categoriesData?.data || []).map((cat) => (
-                          <option key={cat.id} value={cat.id}>{cat.name_ar} - {cat.name_en}</option>
-                        ))}
-                      </select>
-                      {errors.category_id && (
-                        <div className="text-xs text-rose-600 mt-1">{String(errors.category_id.message)}</div>
-                      )}
-                    </div>
-                  )}
-                />
-
                 {/* Titles - Arabic & English */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Controller

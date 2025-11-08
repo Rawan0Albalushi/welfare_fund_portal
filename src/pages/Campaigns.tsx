@@ -36,6 +36,7 @@ export const Campaigns: React.FC = () => {
 	const [imageFile, setImageFile] = React.useState<File | null>(null);
 	const [imagePreview, setImagePreview] = React.useState<string | null>(null);
 	const [formError, setFormError] = React.useState<string | null>(null);
+	const [isSaving, setIsSaving] = React.useState(false);
 
 	const { data: categoriesData } = useCategories({ per_page: 100 });
 
@@ -175,6 +176,7 @@ export const Campaigns: React.FC = () => {
 	const handleSave = async (e: React.FormEvent) => {
 		e.preventDefault();
 		try {
+			setIsSaving(true);
 			setLoading(true);
 			setFormError(null);
 			// Validation
@@ -256,6 +258,7 @@ export const Campaigns: React.FC = () => {
 			setFormError(e?.message ?? 'Failed to save');
 		} finally {
 			setLoading(false);
+			setIsSaving(false);
 		}
 	};
 
@@ -588,8 +591,28 @@ export const Campaigns: React.FC = () => {
 							</div>
 
 							<div className="flex items-center justify-end gap-2 pt-2">
-								<button type="button" onClick={() => setIsModalOpen(false)} className="px-3 py-2 rounded-md border border-gray-300">Cancel</button>
-								<button type="submit" className="px-3 py-2 rounded-md bg-primary-600 text-white">{editingId == null ? 'Create' : 'Save'}</button>
+								<button
+									type="button"
+									onClick={() => setIsModalOpen(false)}
+									className="px-3 py-2 rounded-md border border-gray-300"
+									disabled={isSaving}
+								>
+									Cancel
+								</button>
+								<button
+									type="submit"
+									className="px-3 py-2 rounded-md bg-primary-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+									disabled={isSaving}
+								>
+									{isSaving ? (
+										<span className="flex items-center gap-2">
+											<span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+											{editingId == null ? 'Creating...' : 'Saving...'}
+										</span>
+									) : (
+										editingId == null ? 'Create' : 'Save'
+									)}
+								</button>
 							</div>
 						</form>
 					</div>
