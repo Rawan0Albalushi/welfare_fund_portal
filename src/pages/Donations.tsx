@@ -10,6 +10,7 @@ import { DataTable, type Column } from '../components/common/DataTable';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
 import { type Donation } from '../types';
+import { Modal } from '../components/common/Modal';
 
 export const Donations: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -141,7 +142,11 @@ export const Donations: React.FC = () => {
       });
     } catch (error: any) {
       console.error('Export failed:', error);
-      alert(error?.message || 'فشل التصدير إلى Excel');
+      if (typeof window !== 'undefined') {
+        const message = error?.message || 'فشل التصدير إلى Excel';
+        const event = new CustomEvent('app:snackbar', { detail: { message, severity: 'error' } });
+        window.dispatchEvent(event);
+      }
     } finally {
       setExporting(null);
     }
@@ -160,7 +165,11 @@ export const Donations: React.FC = () => {
       });
     } catch (error: any) {
       console.error('Export failed:', error);
-      alert(error?.message || 'فشل التصدير إلى PDF');
+      if (typeof window !== 'undefined') {
+        const message = error?.message || 'فشل التصدير إلى PDF';
+        const event = new CustomEvent('app:snackbar', { detail: { message, severity: 'error' } });
+        window.dispatchEvent(event);
+      }
     } finally {
       setExporting(null);
     }
@@ -437,87 +446,68 @@ export const Donations: React.FC = () => {
 
       {/* Enhanced Modal */}
       {viewDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setViewDialog(null)} />
-          <div className="relative w-full max-w-2xl rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
-            {/* Modal Header */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-indigo-600 p-6">
-              <div className="absolute inset-0 bg-black/10"></div>
-              <div className="relative flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl">
-                  💰
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-white">{t('donations.donation_details')}</h3>
-                  <p className="text-primary-100 text-sm">{i18n.language === 'en' ? 'Donation Details' : ''}</p>
-                </div>
+        <Modal
+          open={!!viewDialog}
+          onClose={() => setViewDialog(null)}
+          title={t('donations.donation_details') || ''}
+          icon={<span>💰</span>}
+          size="lg"
+          footer={
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setViewDialog(null)}
+                className="px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+              >
+                {t('donations.close')}
+              </button>
+            </div>
+          }
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-1">
+              <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.donation_id_label')}</div>
+              <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                {viewDialog.donation_id}
               </div>
             </div>
-
-            {/* Modal Content */}
-            <div className="p-6 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.donation_id_label')}</div>
-                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    {viewDialog.donation_id}
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.donor_label')}</div>
-                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    {viewDialog.donor_name}
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.amount_label')}</div>
-                  <div className="font-bold text-emerald-600 dark:text-emerald-400 text-xl p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-                    {formatCurrency(viewDialog.amount)}
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.status_label')}</div>
-                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    {viewDialog.status}
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.program_label')}</div>
-                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    {isRTL ? (viewDialog.program?.title_ar || viewDialog.program?.title_en) : (viewDialog.program?.title_en || viewDialog.program?.title_ar) || 'N/A'}
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.created_label')}</div>
-                  <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    {new Date(viewDialog.created_at).toLocaleString(isRTL ? 'ar-SA' : 'en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </div>
-                </div>
+            <div className="space-y-1">
+              <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.donor_label')}</div>
+              <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                {viewDialog.donor_name}
               </div>
-
-              {/* Modal Footer */}
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  onClick={() => setViewDialog(null)}
-                  className="px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
-                >
-                  {t('donations.close')}
-                </button>
+            </div>
+            <div className="space-y-1">
+              <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.amount_label')}</div>
+              <div className="font-bold text-emerald-600 dark:text-emerald-400 text-xl p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                {formatCurrency(viewDialog.amount)}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.status_label')}</div>
+              <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                {viewDialog.status}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.program_label')}</div>
+              <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                {isRTL ? (viewDialog.program?.title_ar || viewDialog.program?.title_en) : (viewDialog.program?.title_en || viewDialog.program?.title_ar) || 'N/A'}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.created_label')}</div>
+              <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                {new Date(viewDialog.created_at).toLocaleString(isRTL ? 'ar-SA' : 'en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
               </div>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

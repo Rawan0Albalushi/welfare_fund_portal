@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
 import { campaignsService } from '../api/services/campaigns';
+import { uploadService } from '../api/services/upload';
 import { useCategories } from '../hooks/useCategories';
 import { DataTable } from '../components/common/DataTable';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
@@ -23,6 +24,7 @@ export const Campaigns: React.FC = () => {
 		description_en: '',
 		goal_amount: '' as unknown as number | '',
 		image: '',
+		image_url: '',
 		status: 'draft',
 		start_date: '',
 		end_date: '',
@@ -31,6 +33,8 @@ export const Campaigns: React.FC = () => {
 		impact_description_en: '',
 		campaign_highlights: '' as unknown as string,
 	});
+	const [imageFile, setImageFile] = React.useState<File | null>(null);
+	const [imagePreview, setImagePreview] = React.useState<string | null>(null);
 	const [formError, setFormError] = React.useState<string | null>(null);
 
 	const { data: categoriesData } = useCategories({ per_page: 100 });
@@ -126,6 +130,7 @@ export const Campaigns: React.FC = () => {
 			description_en: '',
 			goal_amount: '' as unknown as number | '',
 			image: '',
+			image_url: '',
 			status: 'draft',
 			start_date: '',
 			end_date: '',
@@ -134,11 +139,16 @@ export const Campaigns: React.FC = () => {
 			impact_description_en: '',
 			campaign_highlights: '' as unknown as string,
 		});
+		setImageFile(null);
+		setImagePreview(null);
 		setIsModalOpen(true);
 	};
 
 	const openEdit = (c: any) => {
 		setEditingId(c.id);
+		const imagePath = c.image ?? '';
+		const imageUrl = c.image_url ?? imagePath ?? '';
+
 		setForm({
 			category_id: ((c.category_id ?? c.category?.id) ?? ('' as unknown as number | '')) as any,
 			title_ar: c.title_ar ?? '',
@@ -146,7 +156,8 @@ export const Campaigns: React.FC = () => {
 			description_ar: c.description_ar ?? '',
 			description_en: c.description_en ?? '',
 			goal_amount: (c.goal_amount ?? '') as unknown as number | '',
-			image: c.image ?? '',
+			image: imagePath,
+			image_url: imageUrl,
 			status: c.status ?? 'draft',
 			start_date: c.start_date ?? '',
 			end_date: c.end_date ?? '',
@@ -155,6 +166,9 @@ export const Campaigns: React.FC = () => {
 			impact_description_en: c.impact_description_en ?? '',
 			campaign_highlights: Array.isArray(c.campaign_highlights) ? c.campaign_highlights.join(', ') : '',
 		});
+		setImageFile(null);
+		setImagePreview(imageUrl || null);
+		
 		setIsModalOpen(true);
 	};
 
@@ -192,6 +206,23 @@ export const Campaigns: React.FC = () => {
 					throw new Error('End date must be after start date');
 				}
 			}
+			
+			// If there's a file, upload it first to get the URL
+			let imageUrl = form.image_url?.trim() || form.image?.trim() || undefined;
+			if (imageFile) {
+				try {
+					setFormError(null);
+					imageUrl = await uploadService.uploadImage(imageFile);
+					if (!imageUrl) {
+						throw new Error('فشل في رفع الصورة - لم يتم إرجاع رابط الصورة');
+					}
+				} catch (uploadError: any) {
+					const errorMessage = uploadError?.message || 'فشل في رفع الصورة';
+					throw new Error(errorMessage);
+				}
+			}
+			
+			// Prepare payload with image URL
 			const payload = {
 				category_id: Number(form.category_id),
 				title_ar: form.title_ar.trim(),
@@ -199,7 +230,8 @@ export const Campaigns: React.FC = () => {
 				description_ar: form.description_ar.trim(),
 				description_en: form.description_en.trim(),
 				goal_amount: Number(form.goal_amount),
-				image: form.image?.trim() || undefined,
+				image: imageUrl,
+				image_url: imageUrl,
 				status: form.status as 'draft' | 'active' | 'paused' | 'completed' | 'archived',
 				start_date: form.start_date || undefined,
 				end_date: form.end_date || undefined,
@@ -217,6 +249,8 @@ export const Campaigns: React.FC = () => {
 				await campaignsService.updateCampaign(editingId, payload as any);
 			}
 			setIsModalOpen(false);
+			setImageFile(null);
+			setImagePreview(null);
 			await load();
 		} catch (e: any) {
 			setFormError(e?.message ?? 'Failed to save');
@@ -468,8 +502,62 @@ export const Campaigns: React.FC = () => {
 							</div>
 
 							<div>
-								<label className="block text-sm mb-1">Image URL</label>
-								<input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+								<label className="block text-sm mb-1 font-semibold">صورة الحملة <span className="text-rose-500">*</span></label>
+								<input
+									type="file"
+									accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+									onChange={(e) => {
+										const file = e.target.files?.[0];
+										if (file) {
+											// Validate file size (10MB max)
+											const maxSize = 10 * 1024 * 1024; // 10MB
+											if (file.size > maxSize) {
+												setFormError('حجم الصورة كبير جداً. الحد الأقصى 10MB');
+												return;
+											}
+											
+											// Validate file type
+											const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+											if (!allowedTypes.includes(file.type)) {
+												setFormError('نوع الملف غير مدعوم. يرجى رفع صورة (JPEG, PNG, GIF, WebP)');
+												return;
+											}
+											
+											setFormError(null);
+											setImageFile(file);
+											const reader = new FileReader();
+											reader.onloadend = () => {
+												setImagePreview(reader.result as string);
+											};
+											reader.readAsDataURL(file);
+										}
+									}}
+									className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+								/>
+								<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">الحد الأقصى لحجم الصورة: 10MB</p>
+								{imagePreview && (
+									<div className="mt-3">
+										<img
+											src={imagePreview}
+											alt="Preview"
+											className="max-w-full h-48 object-contain rounded-md border border-gray-300 dark:border-gray-700"
+											onError={(e) => {
+												e.currentTarget.style.display = 'none';
+											}}
+										/>
+										<button
+											type="button"
+											onClick={() => {
+												setImageFile(null);
+												setImagePreview(null);
+												setForm({ ...form, image: '', image_url: '' });
+											}}
+											className="mt-2 text-sm text-red-600 hover:text-red-800"
+										>
+											إزالة الصورة
+										</button>
+									</div>
+								)}
 							</div>
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">

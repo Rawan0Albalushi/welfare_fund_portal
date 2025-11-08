@@ -169,7 +169,8 @@
     "status_label": "Status",
     "program_label": "Program",
     "created_label": "Created At",
-    "close": "Close"
+    "close": "Close",
+    "maksab_fee_15": "Maksab fee 15%"
   },
   "campaigns": {
     "title": "Campaigns",
@@ -208,6 +209,7 @@
     "donors_count": "Donors Count",
     "anonymous_count": "Anonymous Donors",
     "average_donation": "Average Donation",
+    "maksab_fee_15": "Maksab fee 15%",
     "by_status": "By Status",
     "by_type": "By Type",
     "over_time": "Over Time",

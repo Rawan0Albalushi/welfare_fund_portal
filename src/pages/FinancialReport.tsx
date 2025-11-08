@@ -75,7 +75,11 @@ export const FinancialReport: React.FC = () => {
       });
     } catch (error: any) {
       console.error('Export failed:', error);
-      alert(error?.message || t('errors.server_error'));
+      if (typeof window !== 'undefined') {
+        const message = error?.message || t('errors.server_error');
+        const event = new CustomEvent('app:snackbar', { detail: { message, severity: 'error' } });
+        window.dispatchEvent(event);
+      }
     } finally {
       setExporting(null);
     }
@@ -91,7 +95,11 @@ export const FinancialReport: React.FC = () => {
       });
     } catch (error: any) {
       console.error('Export failed:', error);
-      alert(error?.message || 'فشل التصدير إلى PDF');
+      if (typeof window !== 'undefined') {
+        const message = error?.message || 'فشل التصدير إلى PDF';
+        const event = new CustomEvent('app:snackbar', { detail: { message, severity: 'error' } });
+        window.dispatchEvent(event);
+      }
     } finally {
       setExporting(null);
     }
@@ -132,6 +140,17 @@ export const FinancialReport: React.FC = () => {
       minWidth: 120,
       sortable: true,
       render: (value) => formatCurrency(value || 0),
+    },
+    {
+      id: 'maksab_fee_15',
+      label: t('donations.maksab_fee_15'),
+      minWidth: 150,
+      sortable: false,
+      render: (_value, row) => {
+        const amount = Number(row?.amount) || 0;
+        const fee = amount * 0.15;
+        return formatCurrency(fee);
+      },
     },
     {
       id: 'type',
@@ -353,11 +372,19 @@ export const FinancialReport: React.FC = () => {
             </div>
             <div className="stat-card">
               <div className="stat-card-icon bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
-                📈
+                💼
               </div>
-              <div className="stat-card-value">{formatCurrency(reportData.data.summary.average_donation)}</div>
-              <div className="stat-card-label">{t('financial_report.average_donation')}</div>
-              <div className="stat-card-subtitle">{i18n.language === 'en' ? 'Average Donation' : ''}</div>
+              {(() => {
+                const total = Number(reportData.data.summary.total_donations) || 0;
+                const fee = total * 0.15;
+                return (
+                  <>
+                    <div className="stat-card-value">{formatCurrency(fee)}</div>
+                    <div className="stat-card-label">{t('financial_report.maksab_fee_15')}</div>
+                    <div className="stat-card-subtitle">{i18n.language === 'en' ? 'Maksab fee 15%' : ''}</div>
+                  </>
+                );
+              })()}
             </div>
           </div>
 

@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import { config } from '../config/env';
+import { getUserFriendlyError } from '../utils/error';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -19,12 +20,18 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
+    // Don't set Content-Type for FormData - let browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     // Log all requests
     console.log('🌐 [API] Request:', {
       method: config.method?.toUpperCase(),
       url: config.url,
       timestamp: new Date().toISOString(),
-      hasToken: !!token
+      hasToken: !!token,
+      isFormData: config.data instanceof FormData
     });
     
     return config;
@@ -55,72 +62,24 @@ apiClient.interceptors.response.use(
       timestamp: new Date().toISOString()
     });
     
-    // Handle timeout specifically
-    if (error.code === 'ECONNABORTED' || error.message?.toLowerCase()?.includes('timeout')) {
-      try {
-        // Show a simple snackbar if available
-        if (typeof window !== 'undefined') {
-          const event = new CustomEvent('app:snackbar', { detail: { message: 'Server not responding', severity: 'error' } });
-          window.dispatchEvent(event);
-        }
-      } catch {}
-    }
+    // Build a localized, user-friendly error and show global snackbar
+    try {
+      const friendly = getUserFriendlyError(error);
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('app:snackbar', { detail: friendly });
+        window.dispatchEvent(event);
+      }
+    } catch {}
 
-    if (error.response) {
-      const { status, data } = error.response;
-      
-      switch (status) {
-        case 401:
-          // Unauthorized - clear any invalid tokens
-          console.warn('🚨 [API] Unauthorized (401) - token may be expired or invalid');
-          localStorage.removeItem('admin_token');
-          localStorage.removeItem('admin_user');
-          // Redirect to login if not already there
-          if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-            window.location.href = '/login';
-          }
-          break;
-        case 403:
-          // Forbidden
-          console.error('Access forbidden:', data.message);
-          break;
-        case 404:
-          // Not found
-          console.error('Resource not found:', data.message);
-          break;
-        case 422:
-          // Validation error
-          console.error('Validation error:', data.errors);
-          break;
-        case 500:
-          // Server error
-          console.error('Server error:', data.message);
-          break;
-        default:
-          console.error('API Error:', data.message || 'Unknown error');
+    if (error?.response?.status === 401) {
+      // Clear tokens and redirect to login
+      try {
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+      } catch {}
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
       }
-    } else if (error.request) {
-      // Network error - no response received
-      console.error('❌ [API] Network error - no response from server:', {
-        message: error.message,
-        code: error.code,
-        baseURL: error.config?.baseURL,
-        url: error.config?.url,
-        method: error.config?.method
-      });
-      
-      // Show helpful message
-      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-        console.error('💡 [API] Possible causes:');
-        console.error('   1. Server is not running');
-        console.error('   2. Wrong API URL in .env file');
-        console.error('   3. CORS issue in backend');
-        console.error('   4. Firewall blocking the connection');
-        console.error(`   Current API URL: ${error.config?.baseURL}`);
-      }
-    } else {
-      // Other error
-      console.error('Error:', error.message);
     }
     
     return Promise.reject(error);
