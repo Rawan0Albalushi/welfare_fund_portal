@@ -6,6 +6,7 @@ import { uploadService } from '../api/services/upload';
 import { useCategories } from '../hooks/useCategories';
 import { DataTable } from '../components/common/DataTable';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
+import { Modal } from '../components/common/Modal';
 
 export const Campaigns: React.FC = () => {
 	const { t } = useTranslation();
@@ -435,189 +436,186 @@ export const Campaigns: React.FC = () => {
 			);
 			})()}
 
-			{isModalOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-					<div className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-						<div className="flex items-center justify-between mb-4">
-							<h2 className="text-xl font-semibold">{editingId == null ? 'New Campaign' : 'Edit Campaign'}</h2>
-							<button onClick={() => setIsModalOpen(false)} className="text-gray-500">✕</button>
+			<Modal
+				open={isModalOpen}
+				onClose={() => setIsModalOpen(false)}
+				title={editingId == null ? 'New Campaign' : 'Edit Campaign'}
+				size="xl"
+				footer={
+					<div className="flex items-center justify-end gap-2">
+						<button
+							type="button"
+							onClick={() => setIsModalOpen(false)}
+							className="px-3 py-2 rounded-md border border-gray-300"
+							disabled={isSaving}
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							form="campaign-form"
+							className="px-3 py-2 rounded-md bg-primary-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+							disabled={isSaving}
+						>
+							{isSaving ? (
+								<span className="flex items-center gap-2">
+									<span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+									{editingId == null ? 'Creating...' : 'Saving...'}
+								</span>
+							) : (
+								editingId == null ? 'Create' : 'Save'
+							)}
+						</button>
+					</div>
+				}
+			>
+				<form id="campaign-form" onSubmit={handleSave} className="space-y-5">
+					{formError && <div className="text-red-600 text-sm">{formError}</div>}
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="md:col-span-1">
+							<label className="block text-sm mb-1">Category</label>
+							<select
+								value={(form.category_id === '' ? '' : String(form.category_id)) as any as string}
+								onChange={(e) => setForm({ ...form, category_id: (e.target.value === '' ? '' : Number(e.target.value)) as any })}
+								required
+								className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+							>
+								<option value="">Select category</option>
+								{(categoriesData?.data || []).map((cat) => (
+									<option key={cat.id} value={String(cat.id)}>{cat.name_ar} - {cat.name_en}</option>
+								))}
+							</select>
 						</div>
-						<form onSubmit={handleSave} className="space-y-5">
-							{formError && <div className="text-red-600 text-sm">{formError}</div>}
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div className="md:col-span-1">
-									<label className="block text-sm mb-1">Category</label>
-									<select
-										value={(form.category_id === '' ? '' : String(form.category_id)) as any as string}
-										onChange={(e) => setForm({ ...form, category_id: (e.target.value === '' ? '' : Number(e.target.value)) as any })}
-										required
-										className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-									>
-										<option value="">Select category</option>
-										{(categoriesData?.data || []).map((cat) => (
-											<option key={cat.id} value={String(cat.id)}>{cat.name_ar} - {cat.name_en}</option>
-										))}
-									</select>
-								</div>
-								<div className="md:col-span-1">
-									<label className="block text-sm mb-1">Status</label>
-									<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as any })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
-										<option value="draft">Draft</option>
-										<option value="active">Active</option>
-										<option value="paused">Paused</option>
-										<option value="completed">Completed</option>
-										<option value="archived">Archived</option>
-									</select>
-								</div>
-							</div>
+						<div className="md:col-span-1">
+							<label className="block text-sm mb-1">Status</label>
+							<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as any })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
+								<option value="draft">Draft</option>
+								<option value="active">Active</option>
+								<option value="paused">Paused</option>
+								<option value="completed">Completed</option>
+								<option value="archived">Archived</option>
+							</select>
+						</div>
+					</div>
 
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div>
-									<label className="block text-sm mb-1 font-semibold">العنوان (العربية) <span className="text-rose-500">*</span></label>
-									<input value={form.title_ar} onChange={(e) => setForm({ ...form, title_ar: e.target.value })} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="أدخل العنوان بالعربية" dir="rtl" />
-								</div>
-								<div>
-									<label className="block text-sm mb-1 font-semibold">Title (English) <span className="text-rose-500">*</span></label>
-									<input value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Enter title in English" dir="ltr" />
-								</div>
-							</div>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div>
+							<label className="block text-sm mb-1 font-semibold">العنوان (العربية) <span className="text-rose-500">*</span></label>
+							<input value={form.title_ar} onChange={(e) => setForm({ ...form, title_ar: e.target.value })} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="أدخل العنوان بالعربية" dir="rtl" />
+						</div>
+						<div>
+							<label className="block text-sm mb-1 font-semibold">Title (English) <span className="text-rose-500">*</span></label>
+							<input value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Enter title in English" dir="ltr" />
+						</div>
+					</div>
 
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div>
-									<label className="block text-sm mb-1 font-semibold">الوصف (العربية) <span className="text-rose-500">*</span></label>
-									<textarea value={form.description_ar} onChange={(e) => setForm({ ...form, description_ar: e.target.value })} rows={3} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="أدخل الوصف بالعربية" dir="rtl" />
-								</div>
-								<div>
-									<label className="block text-sm mb-1 font-semibold">Description (English) <span className="text-rose-500">*</span></label>
-									<textarea value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} rows={3} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Enter description in English" dir="ltr" />
-								</div>
-							</div>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div>
+							<label className="block text-sm mb-1 font-semibold">الوصف (العربية) <span className="text-rose-500">*</span></label>
+							<textarea value={form.description_ar} onChange={(e) => setForm({ ...form, description_ar: e.target.value })} rows={3} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="أدخل الوصف بالعربية" dir="rtl" />
+						</div>
+						<div>
+							<label className="block text-sm mb-1 font-semibold">Description (English) <span className="text-rose-500">*</span></label>
+							<textarea value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} rows={3} required className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Enter description in English" dir="ltr" />
+						</div>
+					</div>
 
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div>
-									<label className="block text-sm mb-1">Goal Amount</label>
-									<input type="number" min="0" value={form.goal_amount as any as string} onChange={(e) => setForm({ ...form, goal_amount: (e.target.value === '' ? '' : Number(e.target.value)) as any })} required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-								</div>
-								<div>
-									<label className="block text-sm mb-1">Target Donors</label>
-									<input type="number" min="0" value={form.target_donors as any as string} onChange={(e) => setForm({ ...form, target_donors: (e.target.value === '' ? '' : Number(e.target.value)) as any })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-								</div>
-							</div>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div>
+							<label className="block text-sm mb-1">Goal Amount</label>
+							<input type="number" min="0" value={form.goal_amount as any as string} onChange={(e) => setForm({ ...form, goal_amount: (e.target.value === '' ? '' : Number(e.target.value)) as any })} required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+						</div>
+						<div>
+							<label className="block text-sm mb-1">Target Donors</label>
+							<input type="number" min="0" value={form.target_donors as any as string} onChange={(e) => setForm({ ...form, target_donors: (e.target.value === '' ? '' : Number(e.target.value)) as any })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+						</div>
+					</div>
 
-							<div>
-								<label className="block text-sm mb-1 font-semibold">صورة الحملة <span className="text-rose-500">*</span></label>
-								<input
-									type="file"
-									accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-									onChange={(e) => {
-										const file = e.target.files?.[0];
-										if (file) {
-											// Validate file size (10MB max)
-											const maxSize = 10 * 1024 * 1024; // 10MB
-											if (file.size > maxSize) {
-												setFormError('حجم الصورة كبير جداً. الحد الأقصى 10MB');
-												return;
-											}
-											
-											// Validate file type
-											const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
-											if (!allowedTypes.includes(file.type)) {
-												setFormError('نوع الملف غير مدعوم. يرجى رفع صورة (JPEG, PNG, GIF, WebP)');
-												return;
-											}
-											
-											setFormError(null);
-											setImageFile(file);
-											const reader = new FileReader();
-											reader.onloadend = () => {
-												setImagePreview(reader.result as string);
-											};
-											reader.readAsDataURL(file);
-										}
+					<div>
+						<label className="block text-sm mb-1 font-semibold">صورة الحملة <span className="text-rose-500">*</span></label>
+						<input
+							type="file"
+							accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+							onChange={(e) => {
+								const file = e.target.files?.[0];
+								if (file) {
+									const maxSize = 10 * 1024 * 1024;
+									if (file.size > maxSize) {
+										setFormError('حجم الصورة كبير جداً. الحد الأقصى 10MB');
+										return;
+									}
+									
+									const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+									if (!allowedTypes.includes(file.type)) {
+										setFormError('نوع الملف غير مدعوم. يرجى رفع صورة (JPEG, PNG, GIF, WebP)');
+										return;
+									}
+									
+									setFormError(null);
+									setImageFile(file);
+									const reader = new FileReader();
+									reader.onloadend = () => {
+										setImagePreview(reader.result as string);
+									};
+									reader.readAsDataURL(file);
+								}
+							}}
+							className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+						/>
+						<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">الحد الأقصى لحجم الصورة: 10MB</p>
+						{imagePreview && (
+							<div className="mt-3">
+								<img
+									src={imagePreview}
+									alt="Preview"
+									className="max-w-full h-48 object-contain rounded-md border border-gray-300 dark:border-gray-700"
+									onError={(e) => {
+										e.currentTarget.style.display = 'none';
 									}}
-									className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
 								/>
-								<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">الحد الأقصى لحجم الصورة: 10MB</p>
-								{imagePreview && (
-									<div className="mt-3">
-										<img
-											src={imagePreview}
-											alt="Preview"
-											className="max-w-full h-48 object-contain rounded-md border border-gray-300 dark:border-gray-700"
-											onError={(e) => {
-												e.currentTarget.style.display = 'none';
-											}}
-										/>
-										<button
-											type="button"
-											onClick={() => {
-												setImageFile(null);
-												setImagePreview(null);
-												setForm({ ...form, image: '', image_url: '' });
-											}}
-											className="mt-2 text-sm text-red-600 hover:text-red-800"
-										>
-											إزالة الصورة
-										</button>
-									</div>
-								)}
-							</div>
-
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div>
-									<label className="block text-sm mb-1">Start Date</label>
-									<input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-								</div>
-								<div>
-									<label className="block text-sm mb-1">End Date</label>
-									<input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-								</div>
-							</div>
-
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div>
-									<label className="block text-sm mb-1">التأثير (العربية) - اختياري</label>
-									<textarea value={form.impact_description_ar} onChange={(e) => setForm({ ...form, impact_description_ar: e.target.value })} rows={2} className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="وصف التأثير بالعربية" dir="rtl" />
-								</div>
-								<div>
-									<label className="block text-sm mb-1">Impact (English) - Optional</label>
-									<textarea value={form.impact_description_en} onChange={(e) => setForm({ ...form, impact_description_en: e.target.value })} rows={2} className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Impact description in English" dir="ltr" />
-								</div>
-							</div>
-
-							<div>
-								<label className="block text-sm mb-1">Highlights (comma-separated)</label>
-								<input value={form.campaign_highlights as any as string} onChange={(e) => setForm({ ...form, campaign_highlights: e.target.value as any })} placeholder="e.g. Secure donations, Transparent reports" className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" />
-							</div>
-
-							<div className="flex items-center justify-end gap-2 pt-2">
 								<button
 									type="button"
-									onClick={() => setIsModalOpen(false)}
-									className="px-3 py-2 rounded-md border border-gray-300"
-									disabled={isSaving}
+									onClick={() => {
+										setImageFile(null);
+										setImagePreview(null);
+										setForm({ ...form, image: '', image_url: '' });
+									}}
+									className="mt-2 text-sm text-red-600 hover:text-red-800"
 								>
-									Cancel
-								</button>
-								<button
-									type="submit"
-									className="px-3 py-2 rounded-md bg-primary-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
-									disabled={isSaving}
-								>
-									{isSaving ? (
-										<span className="flex items-center gap-2">
-											<span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-											{editingId == null ? 'Creating...' : 'Saving...'}
-										</span>
-									) : (
-										editingId == null ? 'Create' : 'Save'
-									)}
+									إزالة الصورة
 								</button>
 							</div>
-						</form>
+						)}
 					</div>
-				</div>
-			)}
+
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div>
+							<label className="block text-sm mb-1">Start Date</label>
+							<input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+						</div>
+						<div>
+							<label className="block text-sm mb-1">End Date</label>
+							<input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+						</div>
+					</div>
+
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div>
+							<label className="block text-sm mb-1">التأثير (العربية) - اختياري</label>
+							<textarea value={form.impact_description_ar} onChange={(e) => setForm({ ...form, impact_description_ar: e.target.value })} rows={2} className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="وصف التأثير بالعربية" dir="rtl" />
+						</div>
+						<div>
+							<label className="block text-sm mb-1">Impact (English) - Optional</label>
+							<textarea value={form.impact_description_en} onChange={(e) => setForm({ ...form, impact_description_en: e.target.value })} rows={2} className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" placeholder="Impact description in English" dir="ltr" />
+						</div>
+					</div>
+
+					<div>
+						<label className="block text-sm mb-1">Highlights (comma-separated)</label>
+						<input value={form.campaign_highlights as any as string} onChange={(e) => setForm({ ...form, campaign_highlights: e.target.value as any })} placeholder="e.g. Secure donations, Transparent reports" className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500" />
+					</div>
+				</form>
+			</Modal>
 
 			<ConfirmDialog
 				open={!!deleteTarget}

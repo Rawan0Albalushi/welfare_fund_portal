@@ -8,6 +8,7 @@ import { DataTable, type Column } from '../components/common/DataTable';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
+import { Modal } from '../components/common/Modal';
 import { type Category, type CreateCategoryRequest, type UpdateCategoryRequest } from '../types';
 
 export const Categories: React.FC = () => {
@@ -268,90 +269,89 @@ export const Categories: React.FC = () => {
         />
       )}
 
-      {/* Create/Edit Modal (Tailwind) */}
-      {openDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleCloseDialog} />
-          <div className="relative w-full max-w-md rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-card p-4">
-            <h3 className="text-lg font-semibold mb-2">{editingCategory ? t('categories.edit_category') : t('categories.add_category')}</h3>
-            <form onSubmit={handleSubmit(handleSubmitForm)}>
-              <div className="space-y-3">
-                <Controller
-                  name="name_ar"
-                  control={control}
-                  rules={{ required: 'الاسم بالعربية مطلوب' }}
-                  render={({ field }) => (
-                    <div>
-                      <label className="block text-sm mb-1 font-semibold">
-                        {t('categories.category_name')} (العربية) <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        {...field}
-                        autoFocus
-                        className={`w-full h-10 px-3 rounded-md border ${errors.name_ar ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                        placeholder="أدخل اسم الفئة بالعربية"
-                        dir="rtl"
-                      />
-                      {errors.name_ar && (
-                        <div className="text-xs text-rose-600 mt-1">{String(errors.name_ar.message)}</div>
-                      )}
-                    </div>
-                  )}
-                />
-                <Controller
-                  name="name_en"
-                  control={control}
-                  rules={{ required: 'English name is required' }}
-                  render={({ field }) => (
-                    <div>
-                      <label className="block text-sm mb-1 font-semibold">
-                        {t('categories.category_name')} (English) <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        {...field}
-                        className={`w-full h-10 px-3 rounded-md border ${errors.name_en ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                        placeholder="Enter category name in English"
-                        dir="ltr"
-                      />
-                      {errors.name_en && (
-                        <div className="text-xs text-rose-600 mt-1">{String(errors.name_en.message)}</div>
-                      )}
-                    </div>
-                  )}
-                />
-                <Controller
-                  name="status"
-                  control={control}
-                  render={({ field }) => (
-                    <div>
-                      <label className="block text-sm mb-1">{t('categories.category_status')}</label>
-                      <select
-                        {...field}
-                        className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                      >
-                        <option value="active">{t('common.active')}</option>
-                        <option value="inactive">{t('common.inactive')}</option>
-                      </select>
-                    </div>
-                  )}
-                />
-              </div>
-              <div className={`flex justify-end gap-2 mt-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                <button type="button" onClick={handleCloseDialog} className="h-9 px-3 rounded-md border border-gray-200 dark:border-gray-700">
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
-                  className="h-9 px-3 rounded-md text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
-                >
-                  {createCategoryMutation.isPending || updateCategoryMutation.isPending ? t('common.loading') : t('common.save')}
-                </button>
-              </div>
-            </form>
+      <Modal
+        open={openDialog}
+        onClose={handleCloseDialog}
+        title={editingCategory ? (t('categories.edit_category') || '') : (t('categories.add_category') || '')}
+        size="md"
+        footer={
+          <div className={`flex justify-end gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <button type="button" onClick={handleCloseDialog} className="h-9 px-3 rounded-md border border-gray-200 dark:border-gray-700">
+              {t('common.cancel')}
+            </button>
+            <button
+              type="submit"
+              form="category-form"
+              disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+              className="h-9 px-3 rounded-md text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
+            >
+              {createCategoryMutation.isPending || updateCategoryMutation.isPending ? t('common.loading') : t('common.save')}
+            </button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <form id="category-form" onSubmit={handleSubmit(handleSubmitForm)} className="space-y-3">
+          <Controller
+            name="name_ar"
+            control={control}
+            rules={{ required: 'الاسم بالعربية مطلوب' }}
+            render={({ field }) => (
+              <div>
+                <label className="block text-sm mb-1 font-semibold">
+                  {t('categories.category_name')} (العربية) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  {...field}
+                  autoFocus
+                  className={`w-full h-10 px-3 rounded-md border ${errors.name_ar ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                  placeholder="أدخل اسم الفئة بالعربية"
+                  dir="rtl"
+                />
+                {errors.name_ar && (
+                  <div className="text-xs text-rose-600 mt-1">{String(errors.name_ar.message)}</div>
+                )}
+              </div>
+            )}
+          />
+          <Controller
+            name="name_en"
+            control={control}
+            rules={{ required: 'English name is required' }}
+            render={({ field }) => (
+              <div>
+                <label className="block text-sm mb-1 font-semibold">
+                  {t('categories.category_name')} (English) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  {...field}
+                  className={`w-full h-10 px-3 rounded-md border ${errors.name_en ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                  placeholder="Enter category name in English"
+                  dir="ltr"
+                />
+                {errors.name_en && (
+                  <div className="text-xs text-rose-600 mt-1">{String(errors.name_en.message)}</div>
+                )}
+              </div>
+            )}
+          />
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <div>
+                <label className="block text-sm mb-1">{t('categories.category_status')}</label>
+                <select
+                  {...field}
+                  className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                >
+                  <option value="active">{t('common.active')}</option>
+                  <option value="inactive">{t('common.inactive')}</option>
+                </select>
+              </div>
+            )}
+          />
+        </form>
+      </Modal>
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

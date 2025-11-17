@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 interface ModalProps {
@@ -43,21 +44,22 @@ export const Modal: React.FC<ModalProps> = ({
 
 	if (!open) return null;
 
-	return (
-		<div
-			className="fixed inset-0 z-50 flex items-start justify-center pt-36 sm:pt-44 pb-14 px-4 sm:px-6 overflow-y-auto animate-fade-in"
-			role="dialog"
-			aria-modal="true"
-		>
+	const modalContent = (
+		<>
 			<div
-				className="fixed inset-0 z-0 bg-black/50 backdrop-blur-sm"
+				className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
 				onClick={closeOnBackdrop ? onClose : undefined}
 				aria-hidden="true"
 			/>
 			<div
-				ref={dialogRef}
-				className={`relative z-10 mt-8 sm:mt-12 w-full ${sizeToMaxWidth[size]} max-h-[calc(100vh-6rem)] sm:max-h-[calc(100vh-7rem)] flex flex-col rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden`}
+				className="fixed inset-0 z-[60] flex items-center justify-center px-4 sm:px-6 py-6 animate-fade-in"
+				role="dialog"
+				aria-modal="true"
 			>
+				<div
+					ref={dialogRef}
+					className={`w-full ${sizeToMaxWidth[size]} max-h-[calc(100vh-3rem)] sm:max-h-[calc(100vh-4rem)] flex flex-col rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden`}
+				>
 				{(title || icon) && (
 					<div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-primary-600 to-indigo-600 p-6">
 						<div className="absolute inset-0 bg-black/10" />
@@ -94,9 +96,12 @@ export const Modal: React.FC<ModalProps> = ({
 						{footer}
 					</div>
 				) : null}
+				</div>
 			</div>
-		</div>
+		</>
 	);
+
+	return createPortal(modalContent, document.body);
 };
 
 export default Modal;

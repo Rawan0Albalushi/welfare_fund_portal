@@ -5,6 +5,7 @@ import { DataTable, type Column } from '../components/common/DataTable';
 import { EmptyState } from '../components/common/EmptyState';
 import { Loader } from '../components/common/Loader';
 import { type User } from '../api/services/users';
+import { Modal } from '../components/common/Modal';
 
 export const Users: React.FC = () => {
 	const [loading, setLoading] = React.useState(false);
@@ -171,64 +172,63 @@ export const Users: React.FC = () => {
 				/>
 			)}
 
-			{isModalOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-					<div className="w-full max-w-xl rounded-xl bg-white p-5 shadow-xl">
-						<div className="flex items-center justify-between mb-3">
-							<h2 className="text-lg font-semibold">{editingId == null ? 'New User' : 'Edit User'}</h2>
-							<button onClick={() => setIsModalOpen(false)} className="text-gray-500">✕</button>
-						</div>
-						<form onSubmit={handleSave} className="space-y-4">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div>
-									<label className="block text-sm mb-1">Name</label>
-									<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-								</div>
-								<div>
-									<label className="block text-sm mb-1">Phone</label>
-									<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-								</div>
-								<div>
-									<label className="block text-sm mb-1">Email</label>
-									<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-								</div>
-								<div>
-									<label className="block text-sm mb-1">Password {editingId != null && <span className="text-gray-500">(optional)</span>}</label>
-									<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-								</div>
-							</div>
-							<div>
-								<label className="block text-sm mb-1">Roles</label>
-								<div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto border border-gray-200 rounded-md p-2">
-									{roles.map((r) => {
-										const checked = form.role_ids.includes(r.id);
-										return (
-											<label key={r.id} className="inline-flex items-center gap-2 text-sm">
-												<input
-													type="checkbox"
-													checked={checked}
-													onChange={(e) => {
-														setForm((prev) => {
-															const role_ids = new Set(prev.role_ids);
-															e.target.checked ? role_ids.add(r.id) : role_ids.delete(r.id);
-															return { ...prev, role_ids: Array.from(role_ids) };
-														});
-													}}
-												/>
-												<span>{r.name}</span>
-											</label>
-										);
-									})}
-								</div>
-							</div>
-							<div className="flex items-center justify-end gap-2 pt-2">
-								<button type="button" onClick={() => setIsModalOpen(false)} className="px-3 py-2 rounded-md border border-gray-300">Cancel</button>
-								<button type="submit" className="px-3 py-2 rounded-md bg-primary-600 text-white">{editingId == null ? 'Create' : 'Save'}</button>
-							</div>
-						</form>
+			<Modal
+				open={isModalOpen}
+				onClose={() => setIsModalOpen(false)}
+				title={editingId == null ? 'New User' : 'Edit User'}
+				size="lg"
+				footer={
+					<div className="flex items-center justify-end gap-2">
+						<button type="button" onClick={() => setIsModalOpen(false)} className="px-3 py-2 rounded-md border border-gray-300">Cancel</button>
+						<button type="submit" form="user-form" className="px-3 py-2 rounded-md bg-primary-600 text-white">{editingId == null ? 'Create' : 'Save'}</button>
 					</div>
-				</div>
-			)}
+				}
+			>
+				<form id="user-form" onSubmit={handleSave} className="space-y-4">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div>
+							<label className="block text-sm mb-1">Name</label>
+							<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+						</div>
+						<div>
+							<label className="block text-sm mb-1">Phone</label>
+							<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+						</div>
+						<div>
+							<label className="block text-sm mb-1">Email</label>
+							<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+						</div>
+						<div>
+							<label className="block text-sm mb-1">Password {editingId != null && <span className="text-gray-500">(optional)</span>}</label>
+							<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+						</div>
+					</div>
+					<div>
+						<label className="block text-sm mb-1">Roles</label>
+						<div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto border border-gray-200 rounded-md p-2">
+							{roles.map((r) => {
+								const checked = form.role_ids.includes(r.id);
+								return (
+									<label key={r.id} className="inline-flex items-center gap-2 text-sm">
+										<input
+											type="checkbox"
+											checked={checked}
+											onChange={(e) => {
+												setForm((prev) => {
+													const role_ids = new Set(prev.role_ids);
+													e.target.checked ? role_ids.add(r.id) : role_ids.delete(r.id);
+													return { ...prev, role_ids: Array.from(role_ids) };
+												});
+											}}
+										/>
+										<span>{r.name}</span>
+									</label>
+								);
+							})}
+						</div>
+					</div>
+				</form>
+			</Modal>
 		</div>
 	);
 };

@@ -9,6 +9,7 @@ import { DataTable, type Column } from '../components/common/DataTable';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
+import { Modal } from '../components/common/Modal';
 
 export const Banners: React.FC = () => {
   const { t } = useTranslation();
@@ -408,269 +409,255 @@ export const Banners: React.FC = () => {
         />
       )}
 
-      {/* Create/Edit Modal */}
-      {openDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCloseDialog} />
-          <div className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xl ${isRTL ? 'text-right' : 'text-left'}`}>
-            <div className="sticky top-0 z-10 bg-gradient-to-r from-primary-600 to-indigo-600 p-6 rounded-t-2xl">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-white">
-                  {editingBanner ? t('banners.edit_banner') : t('banners.add_banner')}
-                </h3>
-                <button
-                  onClick={handleCloseDialog}
-                  className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit(handleSubmitForm)} className="p-6 space-y-4">
-              {/* Image Upload */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  {t('banners.image')} <span className="text-rose-500">*</span>
-                </label>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      disabled={uploadingImage}
-                      className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-primary-900/30 dark:file:text-primary-300"
-                    />
-                    {uploadingImage && (
-                      <p className="text-sm text-primary-600 mt-2">{t('banners.uploading')}...</p>
-                    )}
-                  </div>
-                  {(imagePreview || watch('image')) && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={imagePreview || watch('image') || ''}
-                        alt="Preview"
-                        className="w-32 h-32 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-                {errors.image && (
-                  <p className="text-xs text-rose-600 mt-1">{String(errors.image.message)}</p>
-                )}
-              </div>
-
-              {/* Title AR */}
-              <Controller
-                name="title_ar"
-                control={control}
-                rules={{ required: t('banners.title_ar_required') }}
-                render={({ field }) => (
-                  <div>
-                    <label className="block text-sm mb-1 font-semibold">
-                      {t('banners.title')} (العربية) <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      {...field}
-                      className={`w-full h-10 px-3 rounded-md border ${errors.title_ar ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                      placeholder={t('banners.title_ar_placeholder')}
-                      dir="rtl"
-                    />
-                    {errors.title_ar && (
-                      <p className="text-xs text-rose-600 mt-1">{String(errors.title_ar.message)}</p>
-                    )}
-                  </div>
-                )}
-              />
-
-              {/* Title EN */}
-              <Controller
-                name="title_en"
-                control={control}
-                rules={{ required: t('banners.title_en_required') }}
-                render={({ field }) => (
-                  <div>
-                    <label className="block text-sm mb-1 font-semibold">
-                      {t('banners.title')} (English) <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      {...field}
-                      className={`w-full h-10 px-3 rounded-md border ${errors.title_en ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
-                      placeholder={t('banners.title_en_placeholder')}
-                      dir="ltr"
-                    />
-                    {errors.title_en && (
-                      <p className="text-xs text-rose-600 mt-1">{String(errors.title_en.message)}</p>
-                    )}
-                  </div>
-                )}
-              />
-
-              {/* Description AR */}
-              <Controller
-                name="description_ar"
-                control={control}
-                render={({ field }) => (
-                  <div>
-                    <label className="block text-sm mb-1 font-semibold">
-                      {t('banners.description')} (العربية)
-                    </label>
-                    <textarea
-                      {...field}
-                      rows={3}
-                      className="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                      placeholder={t('banners.description_ar_placeholder')}
-                      dir="rtl"
-                    />
-                  </div>
-                )}
-              />
-
-              {/* Description EN */}
-              <Controller
-                name="description_en"
-                control={control}
-                render={({ field }) => (
-                  <div>
-                    <label className="block text-sm mb-1 font-semibold">
-                      {t('banners.description')} (English)
-                    </label>
-                    <textarea
-                      {...field}
-                      rows={3}
-                      className="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                      placeholder={t('banners.description_en_placeholder')}
-                      dir="ltr"
-                    />
-                  </div>
-                )}
-              />
-
-              {/* Link */}
-              <Controller
-                name="link"
-                control={control}
-                render={({ field }) => (
-                  <div>
-                    <label className="block text-sm mb-1 font-semibold">
-                      {t('banners.link')}
-                    </label>
-                    <input
-                      {...field}
-                      type="url"
-                      className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                      placeholder="https://example.com"
-                      dir="ltr"
-                    />
-                  </div>
-                )}
-              />
-
-              {/* Status and Order */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Controller
-                  name="status"
-                  control={control}
-                  render={({ field }) => (
-                    <div>
-                      <label className="block text-sm mb-1 font-semibold">
-                        {t('banners.status')}
-                      </label>
-                      <select
-                        {...field}
-                        className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                      >
-                        <option value="active">{t('common.active')}</option>
-                        <option value="inactive">{t('common.inactive')}</option>
-                      </select>
-                    </div>
-                  )}
-                />
-
-                <Controller
-                  name="order"
-                  control={control}
-                  render={({ field }) => (
-                    <div>
-                      <label className="block text-sm mb-1 font-semibold">
-                        {t('banners.order')}
-                      </label>
-                      <input
-                        {...field}
-                        type="number"
-                        min="0"
-                        className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </div>
-                  )}
-                />
-              </div>
-
-              {/* Dates */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Controller
-                  name="start_date"
-                  control={control}
-                  render={({ field }) => (
-                    <div>
-                      <label className="block text-sm mb-1 font-semibold">
-                        {t('banners.start_date')}
-                      </label>
-                      <input
-                        {...field}
-                        type="date"
-                        className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                      />
-                    </div>
-                  )}
-                />
-
-                <Controller
-                  name="end_date"
-                  control={control}
-                  render={({ field }) => (
-                    <div>
-                      <label className="block text-sm mb-1 font-semibold">
-                        {t('banners.end_date')}
-                      </label>
-                      <input
-                        {...field}
-                        type="date"
-                        className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                      />
-                    </div>
-                  )}
-                />
-              </div>
-
-              {/* Form Actions */}
-              <div className={`flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                <button
-                  type="button"
-                  onClick={handleCloseDialog}
-                  className="h-9 px-4 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={createBannerMutation.isPending || updateBannerMutation.isPending || uploadingImage}
-                  className="h-9 px-4 rounded-md text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {createBannerMutation.isPending || updateBannerMutation.isPending
-                    ? t('common.loading')
-                    : t('common.save')}
-                </button>
-              </div>
-            </form>
+      <Modal
+        open={openDialog}
+        onClose={handleCloseDialog}
+        title={editingBanner ? (t('banners.edit_banner') || '') : (t('banners.add_banner') || '')}
+        size="lg"
+        footer={
+          <div className={`flex justify-end gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <button
+              type="button"
+              onClick={handleCloseDialog}
+              className="h-9 px-4 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              type="submit"
+              form="banner-form"
+              disabled={createBannerMutation.isPending || updateBannerMutation.isPending || uploadingImage}
+              className="h-9 px-4 rounded-md text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {createBannerMutation.isPending || updateBannerMutation.isPending
+                ? t('common.loading')
+                : t('common.save')}
+            </button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <form id="banner-form" onSubmit={handleSubmit(handleSubmitForm)} className="p-1 space-y-4">
+          {/* Image Upload */}
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+              {t('banners.image')} <span className="text-rose-500">*</span>
+            </label>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={uploadingImage}
+                  className="w-full h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-primary-900/30 dark:file:text-primary-300"
+                />
+                {uploadingImage && (
+                  <p className="text-sm text-primary-600 mt-2">{t('banners.uploading')}...</p>
+                )}
+              </div>
+              {(imagePreview || watch('image')) && (
+                <div className="flex-shrink-0">
+                  <img
+                    src={imagePreview || watch('image') || ''}
+                    alt="Preview"
+                    className="w-32 h-32 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+            {errors.image && (
+              <p className="text-xs text-rose-600 mt-1">{String(errors.image.message)}</p>
+            )}
+          </div>
+
+          {/* Title AR */}
+          <Controller
+            name="title_ar"
+            control={control}
+            rules={{ required: t('banners.title_ar_required') }}
+            render={({ field }) => (
+              <div>
+                <label className="block text-sm mb-1 font-semibold">
+                  {t('banners.title')} (العربية) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  {...field}
+                  className={`w-full h-10 px-3 rounded-md border ${errors.title_ar ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                  placeholder={t('banners.title_ar_placeholder')}
+                  dir="rtl"
+                />
+                {errors.title_ar && (
+                  <p className="text-xs text-rose-600 mt-1">{String(errors.title_ar.message)}</p>
+                )}
+              </div>
+            )}
+          />
+
+          {/* Title EN */}
+          <Controller
+            name="title_en"
+            control={control}
+            rules={{ required: t('banners.title_en_required') }}
+            render={({ field }) => (
+              <div>
+                <label className="block text-sm mb-1 font-semibold">
+                  {t('banners.title')} (English) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  {...field}
+                  className={`w-full h-10 px-3 rounded-md border ${errors.title_en ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700'} bg-white dark:bg-gray-800`}
+                  placeholder={t('banners.title_en_placeholder')}
+                  dir="ltr"
+                />
+                {errors.title_en && (
+                  <p className="text-xs text-rose-600 mt-1">{String(errors.title_en.message)}</p>
+                )}
+              </div>
+            )}
+          />
+
+          {/* Description AR */}
+          <Controller
+            name="description_ar"
+            control={control}
+            render={({ field }) => (
+              <div>
+                <label className="block text-sm mb-1 font-semibold">
+                  {t('banners.description')} (العربية)
+                </label>
+                <textarea
+                  {...field}
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                  placeholder={t('banners.description_ar_placeholder')}
+                  dir="rtl"
+                />
+              </div>
+            )}
+          />
+
+          {/* Description EN */}
+          <Controller
+            name="description_en"
+            control={control}
+            render={({ field }) => (
+              <div>
+                <label className="block text-sm mb-1 font-semibold">
+                  {t('banners.description')} (English)
+                </label>
+                <textarea
+                  {...field}
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                  placeholder={t('banners.description_en_placeholder')}
+                  dir="ltr"
+                />
+              </div>
+            )}
+          />
+
+          {/* Link */}
+          <Controller
+            name="link"
+            control={control}
+            render={({ field }) => (
+              <div>
+                <label className="block text-sm mb-1 font-semibold">
+                  {t('banners.link')}
+                </label>
+                <input
+                  {...field}
+                  type="url"
+                  className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                  placeholder="https://example.com"
+                  dir="ltr"
+                />
+              </div>
+            )}
+          />
+
+          {/* Status and Order */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <label className="block text-sm mb-1 font-semibold">
+                    {t('banners.status')}
+                  </label>
+                  <select
+                    {...field}
+                    className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                  >
+                    <option value="active">{t('common.active')}</option>
+                    <option value="inactive">{t('common.inactive')}</option>
+                  </select>
+                </div>
+              )}
+            />
+
+            <Controller
+              name="order"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <label className="block text-sm mb-1 font-semibold">
+                    {t('banners.order')}
+                  </label>
+                  <input
+                    {...field}
+                    type="number"
+                    min="0"
+                    className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </div>
+              )}
+            />
+          </div>
+
+          {/* Dates */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Controller
+              name="start_date"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <label className="block text-sm mb-1 font-semibold">
+                    {t('banners.start_date')}
+                  </label>
+                  <input
+                    {...field}
+                    type="date"
+                    className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                  />
+                </div>
+              )}
+            />
+
+            <Controller
+              name="end_date"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <label className="block text-sm mb-1 font-semibold">
+                    {t('banners.end_date')}
+                  </label>
+                  <input
+                    {...field}
+                    type="date"
+                    className="w-full h-10 px-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                  />
+                </div>
+              )}
+            />
+          </div>
+        </form>
+      </Modal>
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

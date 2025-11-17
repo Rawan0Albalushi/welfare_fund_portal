@@ -2,6 +2,7 @@ import React from 'react';
 import { rolesService } from '../api/services/roles';
 import { permissionsService } from '../api/services/permissions';
 import { logger } from '../utils/logger';
+import { Modal } from '../components/common/Modal';
 
 export const RolesPermissions: React.FC = () => {
 	const [roles, setRoles] = React.useState<any[]>([]);
@@ -159,71 +160,69 @@ export const RolesPermissions: React.FC = () => {
 				</div>
 			</div>
 
-			{roleModalOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-					<div className="w-full max-w-xl rounded-xl bg-white p-5 shadow-xl">
-						<div className="flex items-center justify-between mb-3">
-							<h2 className="text-lg font-semibold">{editingRoleId == null ? 'New Role' : 'Edit Role'}</h2>
-							<button onClick={() => setRoleModalOpen(false)} className="text-gray-500">✕</button>
-						</div>
-						<form onSubmit={saveRole} className="space-y-4">
-							<div>
-								<label className="block text-sm mb-1">Name</label>
-								<input value={roleForm.name} onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })} required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-							</div>
-							<div>
-								<label className="block text-sm mb-1">Permissions</label>
-								<div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto border border-gray-200 rounded-md p-2">
-									{permissions.map((p) => {
-										const checked = roleForm.permission_ids.includes(p.id);
-										return (
-											<label key={p.id} className="inline-flex items-center gap-2 text-sm">
-												<input
-													type="checkbox"
-													checked={checked}
-													onChange={(e) => {
-														setRoleForm((prev) => {
-															const ids = new Set(prev.permission_ids);
-															e.target.checked ? ids.add(p.id) : ids.delete(p.id);
-															return { ...prev, permission_ids: Array.from(ids) };
-														});
-													}}
-												/>
-												<span>{p.name}</span>
-											</label>
-										);
-									})}
-								</div>
-							</div>
-							<div className="flex items-center justify-end gap-2 pt-2">
-								<button type="button" onClick={() => setRoleModalOpen(false)} className="px-3 py-2 rounded-md border border-gray-300">Cancel</button>
-								<button type="submit" className="px-3 py-2 rounded-md bg-primary-600 text-white">{editingRoleId == null ? 'Create' : 'Save'}</button>
-							</div>
-						</form>
+			<Modal
+				open={roleModalOpen}
+				onClose={() => setRoleModalOpen(false)}
+				title={editingRoleId == null ? 'New Role' : 'Edit Role'}
+				size="lg"
+				footer={
+					<div className="flex items-center justify-end gap-2">
+						<button type="button" onClick={() => setRoleModalOpen(false)} className="px-3 py-2 rounded-md border border-gray-300">Cancel</button>
+						<button type="submit" form="role-form" className="px-3 py-2 rounded-md bg-primary-600 text-white">{editingRoleId == null ? 'Create' : 'Save'}</button>
 					</div>
-				</div>
-			)}
+				}
+			>
+				<form id="role-form" onSubmit={saveRole} className="space-y-4">
+					<div>
+						<label className="block text-sm mb-1">Name</label>
+						<input value={roleForm.name} onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })} required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+					</div>
+					<div>
+						<label className="block text-sm mb-1">Permissions</label>
+						<div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto border border-gray-200 rounded-md p-2">
+							{permissions.map((p) => {
+								const checked = roleForm.permission_ids.includes(p.id);
+								return (
+									<label key={p.id} className="inline-flex items-center gap-2 text-sm">
+										<input
+											type="checkbox"
+											checked={checked}
+											onChange={(e) => {
+												setRoleForm((prev) => {
+													const ids = new Set(prev.permission_ids);
+													e.target.checked ? ids.add(p.id) : ids.delete(p.id);
+													return { ...prev, permission_ids: Array.from(ids) };
+												});
+											}}
+										/>
+										<span>{p.name}</span>
+									</label>
+								);
+							})}
+						</div>
+					</div>
+				</form>
+			</Modal>
 
-			{permModalOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-					<div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
-						<div className="flex items-center justify-between mb-3">
-							<h2 className="text-lg font-semibold">{editingPermId == null ? 'New Permission' : 'Edit Permission'}</h2>
-							<button onClick={() => setPermModalOpen(false)} className="text-gray-500">✕</button>
-						</div>
-						<form onSubmit={savePerm} className="space-y-4">
-							<div>
-								<label className="block text-sm mb-1">Name</label>
-								<input value={permForm.name} onChange={(e) => setPermForm({ ...permForm, name: e.target.value })} required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-							</div>
-							<div className="flex items-center justify-end gap-2 pt-2">
-								<button type="button" onClick={() => setPermModalOpen(false)} className="px-3 py-2 rounded-md border border-gray-300">Cancel</button>
-								<button type="submit" className="px-3 py-2 rounded-md bg-primary-600 text-white">{editingPermId == null ? 'Create' : 'Save'}</button>
-							</div>
-						</form>
+			<Modal
+				open={permModalOpen}
+				onClose={() => setPermModalOpen(false)}
+				title={editingPermId == null ? 'New Permission' : 'Edit Permission'}
+				size="sm"
+				footer={
+					<div className="flex items-center justify-end gap-2">
+						<button type="button" onClick={() => setPermModalOpen(false)} className="px-3 py-2 rounded-md border border-gray-300">Cancel</button>
+						<button type="submit" form="permission-form" className="px-3 py-2 rounded-md bg-primary-600 text-white">{editingPermId == null ? 'Create' : 'Save'}</button>
 					</div>
-				</div>
-			)}
+				}
+			>
+				<form id="permission-form" onSubmit={savePerm} className="space-y-4">
+					<div>
+						<label className="block text-sm mb-1">Name</label>
+						<input value={permForm.name} onChange={(e) => setPermForm({ ...permForm, name: e.target.value })} required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+					</div>
+				</form>
+			</Modal>
 		</div>
 	);
 };
