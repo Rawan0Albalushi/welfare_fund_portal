@@ -10,6 +10,7 @@ import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
 import { Modal } from '../components/common/Modal';
 import { type Category, type CreateCategoryRequest, type UpdateCategoryRequest } from '../types';
+import { formatEnglishDate } from '../utils/format';
 
 export const Categories: React.FC = () => {
   const { t } = useTranslation();
@@ -86,7 +87,7 @@ export const Categories: React.FC = () => {
       label: t('common.created_at'),
       minWidth: 150,
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) => formatEnglishDate(value) || '-',
     },
   ], [t]);
 

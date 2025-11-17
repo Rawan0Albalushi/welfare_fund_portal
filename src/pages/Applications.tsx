@@ -8,6 +8,7 @@ import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
 import { type StudentRegistration } from '../types';
 import { Modal } from '../components/common/Modal';
+import { formatEnglishDate, formatEnglishDateTime } from '../utils/format';
 import apiClient from '../api/axios';
 import { logger } from '../utils/logger';
 
@@ -78,7 +79,7 @@ export const Applications: React.FC = () => {
       label: t('applications.submitted_at'),
       minWidth: 150,
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) => formatEnglishDate(value) || '-',
     },
   ], [t]);
 
@@ -368,13 +369,13 @@ export const Applications: React.FC = () => {
                 <div className="space-y-1">
                   <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('applications.submitted_date_label')}</div>
                   <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    {new Date(viewDialog.created_at).toLocaleString(isRTL ? 'ar-SA' : 'en-US', {
+                    {formatEnglishDateTime(viewDialog.created_at, {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
                       hour: '2-digit',
                       minute: '2-digit'
-                    })}
+                    }) || 'N/A'}
                   </div>
                 </div>
               </div>

@@ -10,6 +10,7 @@ import { Modal } from '../components/common/Modal';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
 import { type Program, type CreateProgramRequest, type UpdateProgramRequest } from '../types';
+import { formatEnglishDate } from '../utils/format';
 
 export const Programs: React.FC = () => {
   const { t } = useTranslation();
@@ -89,7 +90,7 @@ export const Programs: React.FC = () => {
       label: t('common.created_at'),
       minWidth: 150,
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) => formatEnglishDate(value) || '-',
     },
   ], [t]);
 

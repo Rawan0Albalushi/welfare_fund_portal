@@ -6,6 +6,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { Loader } from '../components/common/Loader';
 import { type User } from '../api/services/users';
 import { Modal } from '../components/common/Modal';
+import { formatEnglishDate } from '../utils/format';
 
 export const Users: React.FC = () => {
 	const [loading, setLoading] = React.useState(false);
@@ -55,7 +56,7 @@ export const Users: React.FC = () => {
 			label: 'Created At',
 			minWidth: 150,
 			sortable: true,
-			render: (value) => value ? new Date(value).toLocaleDateString() : '-',
+			render: (value) => (value ? (formatEnglishDate(value) || '-') : '-'),
 		},
 	], []);
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { auditLogsService } from '../api/services/auditLogs';
+import { formatEnglishDateTime } from '../utils/format';
 
 export const AuditLogs: React.FC = () => {
 	const [items, setItems] = React.useState<any[]>([]);
@@ -79,7 +80,7 @@ export const AuditLogs: React.FC = () => {
 					<tbody className="divide-y divide-gray-100 bg-white">
 						{items.map((l) => (
 							<tr key={l.id}>
-								<td className="px-4 py-2">{new Date(l.created_at ?? '').toLocaleString()}</td>
+								<td className="px-4 py-2">{formatEnglishDateTime(l.created_at) || '-'}</td>
 								<td className="px-4 py-2">{l.user_id ?? '-'}</td>
 								<td className="px-4 py-2">{l.action}</td>
 								<td className="px-4 py-2">{l.model_type} #{l.model_id}</td>

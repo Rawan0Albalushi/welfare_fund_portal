@@ -12,6 +12,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { type Campaign, type Donation } from '../types';
 import { Modal } from '../components/common/Modal';
 import { logger } from '../utils/logger';
+import { formatEnglishCurrency, formatEnglishDate, formatEnglishDateTime } from '../utils/format';
 
 export const Donations: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -68,11 +69,8 @@ export const Donations: React.FC = () => {
   }, [campaigns]);
 
   const formatCurrency = React.useCallback((amount: number) => {
-    return new Intl.NumberFormat(isRTL ? 'ar-OM' : 'en-OM', {
-      style: 'currency',
-      currency: 'OMR',
-    }).format(amount);
-  }, [isRTL]);
+    return formatEnglishCurrency(amount);
+  }, []);
 
   const columns: Column<Donation>[] = React.useMemo(() => [
     {
@@ -133,7 +131,7 @@ export const Donations: React.FC = () => {
       label: t('donations.created_at'),
       minWidth: 150,
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) => formatEnglishDate(value) || '-',
     },
   ], [t, formatCurrency, isRTL, campaignsLookup]);
 
@@ -516,13 +514,13 @@ export const Donations: React.FC = () => {
             <div className="space-y-1">
               <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('donations.created_label')}</div>
               <div className="font-semibold text-slate-900 dark:text-slate-100 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                {new Date(viewDialog.created_at).toLocaleString(isRTL ? 'ar-SA' : 'en-US', {
+                {formatEnglishDateTime(viewDialog.created_at, {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                   hour: '2-digit',
                   minute: '2-digit'
-                })}
+                }) || 'N/A'}
               </div>
             </div>
           </div>

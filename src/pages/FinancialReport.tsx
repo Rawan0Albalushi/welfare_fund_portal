@@ -10,6 +10,7 @@ import { DataTable, type Column } from '../components/common/DataTable';
 import type { FinancialReportResponse } from '../api/services/reports';
 import type { Campaign, Donation } from '../types';
 import { logger } from '../utils/logger';
+import { formatEnglishCurrency, formatEnglishDate } from '../utils/format';
 
 export const FinancialReport: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -136,11 +137,8 @@ export const FinancialReport: React.FC = () => {
   };
 
   const formatCurrency = React.useCallback((amount: number) => {
-    return new Intl.NumberFormat(isRTL ? 'ar-OM' : 'en-OM', {
-      style: 'currency',
-      currency: 'OMR',
-    }).format(amount);
-  }, [isRTL]);
+    return formatEnglishCurrency(amount);
+  }, []);
 
   // Removed unused formatDate helper to satisfy TypeScript build
 
@@ -232,7 +230,7 @@ export const FinancialReport: React.FC = () => {
       label: t('donations.created_at'),
       minWidth: 150,
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) => formatEnglishDate(value) || '-',
     },
   ], [t, formatCurrency, isRTL, campaignsLookup]);
 

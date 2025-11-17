@@ -7,6 +7,7 @@ import { useCategories } from '../hooks/useCategories';
 import { DataTable } from '../components/common/DataTable';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { Modal } from '../components/common/Modal';
+import { formatEnglishDate, formatEnglishNumber } from '../utils/format';
 
 export const Campaigns: React.FC = () => {
 	const { t } = useTranslation();
@@ -297,21 +298,21 @@ export const Campaigns: React.FC = () => {
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 				<div className="stat-card stat-card-total">
 					<div className="stat-card-icon bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">📦</div>
-					<div className="stat-card-value">{stats.totalCampaigns.toLocaleString()}</div>
+					<div className="stat-card-value">{formatEnglishNumber(stats.totalCampaigns) || '0'}</div>
 					<div className="stat-card-label">Total Campaigns</div>
 					<div className="stat-card-subtitle"></div>
 				</div>
 
 				<div className="stat-card stat-card-info">
 					<div className="stat-card-icon bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400">🟢</div>
-					<div className="stat-card-value">{stats.activeCount.toLocaleString()}</div>
+					<div className="stat-card-value">{formatEnglishNumber(stats.activeCount) || '0'}</div>
 					<div className="stat-card-label">Active</div>
 					<div className="stat-card-subtitle"></div>
 				</div>
 
 				<div className="stat-card stat-card-approved">
 					<div className="stat-card-icon bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">✅</div>
-					<div className="stat-card-value">{stats.completedCount.toLocaleString()}</div>
+					<div className="stat-card-value">{formatEnglishNumber(stats.completedCount) || '0'}</div>
 					<div className="stat-card-label">Completed</div>
 					<div className="stat-card-subtitle"></div>
 				</div>
@@ -418,10 +419,12 @@ export const Campaigns: React.FC = () => {
 						const collected = collectedRaw != null ? Number(collectedRaw) : 0;
 						const goal = v != null ? Number(v) : null;
 						if (goal == null) return '-';
-						return `${collected.toLocaleString()} / ${goal.toLocaleString()}`;
+						const collectedFormatted = formatEnglishNumber(collected) || '0';
+						const goalFormatted = formatEnglishNumber(goal) || '0';
+						return `${collectedFormatted} / ${goalFormatted}`;
 					}},
-					{ id: 'start_date', label: 'Start', minWidth: 120, render: (v) => (v ? new Date(v).toLocaleDateString() : '-') },
-					{ id: 'end_date', label: 'End', minWidth: 120, render: (v) => (v ? new Date(v).toLocaleDateString() : '-') },
+					{ id: 'start_date', label: 'Start', minWidth: 120, render: (v) => (v ? (formatEnglishDate(v) || '-') : '-') },
+					{ id: 'end_date', label: 'End', minWidth: 120, render: (v) => (v ? (formatEnglishDate(v) || '-') : '-') },
 				]}
 				data={enrichedItems}
 				loading={loading}

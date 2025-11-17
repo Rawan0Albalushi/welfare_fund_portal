@@ -2,6 +2,7 @@ import React from 'react';
 // Replaced MUI icons with simple unicode icons for lightweight UI
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { formatEnglishDate } from '../../utils/format';
 
 export interface Column<T> {
   id: keyof T | string;
@@ -129,7 +130,7 @@ export const DataTable = <T extends Record<string, any>>({
                       if (column.render) return column.render(value, row);
                       if (column.id === 'status') return getStatusPill(value);
                       if (typeof value === 'boolean') return value ? t('common.yes') : t('common.no');
-                      if (value instanceof Date) return new Date(value).toLocaleDateString();
+                      if (value instanceof Date) return formatEnglishDate(value) || '-';
                       return value ?? '-';
                     })()}
                   </td>

@@ -11,6 +11,7 @@ import { StatCard } from '../components/common/StatCard';
 import { useLanguage } from '../contexts/LanguageContext';
 import { reportsService } from '../api/services/reports';
 import { logger } from '../utils/logger';
+import { formatEnglishDate } from '../utils/format';
 
 export const Dashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -469,7 +470,7 @@ export const Dashboard: React.FC = () => {
                           <td className="py-2 pr-4">{donation?.donor_name || 'N/A'}</td>
                           <td className="py-2 pr-4">{formatCurrency(donationAmount)}</td>
                           <td className="py-2 pr-4">{getStatusPill(donation?.status || 'unknown')}</td>
-                          <td className="py-2 pr-4">{donation?.created_at ? new Date(donation.created_at).toLocaleDateString() : 'N/A'}</td>
+                          <td className="py-2 pr-4">{donation?.created_at ? (formatEnglishDate(donation.created_at) || 'N/A') : 'N/A'}</td>
                         </tr>
                       );
                     } catch (error) {
@@ -539,7 +540,7 @@ export const Dashboard: React.FC = () => {
                       <td className="py-2 pr-4">{application?.personal_json?.name || application?.student_name || application?.user?.name || 'N/A'}</td>
                           <td className="py-2 pr-4">{application?.program?.title_ar || application?.program?.title_en || application?.program?.title || 'N/A'}</td>
                           <td className="py-2 pr-4">{getStatusPill(application?.status || 'unknown')}</td>
-                          <td className="py-2 pr-4">{application?.created_at ? new Date(application.created_at).toLocaleDateString() : 'N/A'}</td>
+                          <td className="py-2 pr-4">{application?.created_at ? (formatEnglishDate(application.created_at) || 'N/A') : 'N/A'}</td>
                         </tr>
                       );
                     } catch (error) {

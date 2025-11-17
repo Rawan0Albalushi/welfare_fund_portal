@@ -10,6 +10,7 @@ import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
 import { Modal } from '../components/common/Modal';
+import { formatEnglishDate } from '../utils/format';
 
 export const Banners: React.FC = () => {
   const { t } = useTranslation();
@@ -136,7 +137,7 @@ export const Banners: React.FC = () => {
       label: t('common.created_at'),
       minWidth: 150,
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-',
+      render: (value) => (value ? (formatEnglishDate(value) || '-') : '-'),
     },
   ], [t]);
 
