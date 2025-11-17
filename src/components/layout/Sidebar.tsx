@@ -74,6 +74,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
       path: '/users',
     },
     {
+      id: 'banners',
+      label: t('navigation.banners'),
+      icon: <span>🖼️</span>,
+      path: '/banners',
+    },
+    {
       id: 'settings',
       label: t('navigation.settings'),
       icon: <span>⚙️</span>,
@@ -270,6 +276,12 @@ export const PermanentSidebar: React.FC<{ drawerWidth: number }> = ({ drawerWidt
       label: t('navigation.users'),
       icon: <span>👥</span>,
       path: '/users',
+    },
+    {
+      id: 'banners',
+      label: t('navigation.banners'),
+      icon: <span>🖼️</span>,
+      path: '/banners',
     },
     {
       id: 'settings',

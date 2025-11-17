@@ -9,9 +9,48 @@ export function normalizePaginatedResponse<T>(
   params?: QueryParams,
   mapper?: (item: any) => T
 ): PaginatedResponse<T> {
-  const root = response?.data ?? response;
+  // Handle different response structures
+  // Case A: response is already the data object { data: [...], meta: {...} }
+  // Case B: response has nested data { data: { data: [...], meta: {...} } }
+  // Case C: response is just an array [...]
   
-  // Check if response has pagination metadata at root level
+  let root: any;
+  
+  // If response has a 'data' property that is an object (not array) with 'data' and 'meta'
+  // This means we have { data: { data: [...], meta: {...} } }
+  if (
+    response &&
+    typeof response === 'object' &&
+    !Array.isArray(response) &&
+    response.data &&
+    typeof response.data === 'object' &&
+    !Array.isArray(response.data) &&
+    (Array.isArray(response.data.data) || response.data.meta)
+  ) {
+    root = response.data;
+  }
+  // If response itself has 'data' array and 'meta' object (Laravel format)
+  // This means we have { data: [...], meta: {...} }
+  else if (
+    response &&
+    typeof response === 'object' &&
+    !Array.isArray(response) &&
+    Array.isArray(response.data) &&
+    response.meta &&
+    typeof response.meta === 'object'
+  ) {
+    root = response;
+  }
+  // If response.data exists and is an object (not array), use it
+  else if (response?.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+    root = response.data;
+  }
+  // Otherwise, use response directly
+  else {
+    root = response;
+  }
+  
+  // Check if response has pagination metadata at root level or in meta object
   const hasPaginationAtRoot = (
     typeof root?.total !== 'undefined' ||
     typeof root?.last_page !== 'undefined' ||
@@ -20,7 +59,24 @@ export function normalizePaginatedResponse<T>(
     typeof root?.pagination?.total !== 'undefined'
   );
 
-  // Case 1: Backend returns object with pagination + data array
+  // Case 1a: Backend returns { data: [...], meta: { total, last_page, ... } }
+  // This is the Laravel-style pagination format
+  if (Array.isArray(root?.data) && root?.meta && typeof root.meta === 'object') {
+    const mappedData = mapper ? root.data.map(mapper) : root.data;
+    
+    const meta = root.meta;
+    return {
+      data: mappedData,
+      current_page: Number(meta?.current_page ?? params?.page ?? 1),
+      last_page: Number(meta?.last_page ?? 1),
+      per_page: Number(meta?.per_page ?? params?.per_page ?? 10),
+      total: Number(meta?.total ?? mappedData.length),
+      from: Number(meta?.from ?? 0),
+      to: Number(meta?.to ?? 0),
+    } as PaginatedResponse<T>;
+  }
+
+  // Case 1b: Backend returns object with pagination + data array (flat structure)
   if (hasPaginationAtRoot && Array.isArray(root?.data)) {
     const mappedData = mapper ? root.data.map(mapper) : root.data;
     

@@ -51,6 +51,37 @@ export interface CreateProgramRequest {
 
 export interface UpdateProgramRequest extends Partial<CreateProgramRequest> {}
 
+// Banner types
+export interface Banner extends BaseEntity {
+  title_ar: string;
+  title_en: string;
+  description_ar?: string | null;
+  description_en?: string | null;
+  image?: string | null;
+  image_url?: string | null;
+  link?: string | null;
+  status: 'active' | 'inactive';
+  order?: number | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  deleted_at?: string | null;
+}
+
+export interface CreateBannerRequest {
+  title_ar: string;
+  title_en: string;
+  description_ar?: string;
+  description_en?: string;
+  image?: string;
+  link?: string;
+  status: 'active' | 'inactive';
+  order?: number;
+  start_date?: string;
+  end_date?: string;
+}
+
+export interface UpdateBannerRequest extends Partial<CreateBannerRequest> {}
+
 // Campaign types
 export interface Campaign extends BaseEntity {
   category_id?: number | null;
