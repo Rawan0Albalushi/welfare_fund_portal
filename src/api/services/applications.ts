@@ -1,5 +1,8 @@
 import apiClient from '../axios';
 import { type StudentRegistration, type PaginatedResponse, type QueryParams } from '../../types';
+import { normalizePaginatedResponse, normalizeItemResponse } from '../../utils/pagination';
+import { logger } from '../../utils/logger';
+import { handleApiError } from '../../utils/errorHandler';
 
 export const applicationsService = {
   getApplications: async (params?: QueryParams): Promise<PaginatedResponse<StudentRegistration>> => {
@@ -11,72 +14,41 @@ export const applicationsService = {
       : undefined;
 
     try {
+      logger.log('Fetching applications', { params: cleanedParams });
       const response = await apiClient.get('/applications', { params: cleanedParams });
-      const payload = response.data?.data ?? response.data;
       
-      // Debug logging for applications
-      console.log('📝 [Applications] Raw response:', response.data);
-      console.log('📝 [Applications] Payload:', payload);
-      if (payload?.data && Array.isArray(payload.data)) {
-        console.log('📝 [Applications] Sample application:', payload.data[0]);
-        console.log('📝 [Applications] Total applications count:', payload.data.length);
-        console.log('📝 [Applications] Pending applications count:', payload.data.filter((a: StudentRegistration) => a.status === 'pending').length);
-      }
-
-      // Normalize to consistent paginated response
-      const normalized: PaginatedResponse<StudentRegistration> = {
-        data: Array.isArray((payload as any)?.data)
-          ? (payload as any).data
-          : Array.isArray(payload)
-            ? (payload as StudentRegistration[])
-            : [],
-        current_page: (payload as any)?.current_page ?? params?.page ?? 1,
-        last_page: (payload as any)?.last_page ?? 1,
-        per_page: (payload as any)?.per_page ?? params?.per_page ?? 10,
-        // Prefer explicit total; otherwise compute from last_page & per_page if provided; else fallback to current page length
-        total: (payload as any)?.total
-          ?? (((payload as any)?.last_page && (payload as any)?.per_page)
-                ? Number((payload as any).last_page) * Number((payload as any).per_page)
-                : (Array.isArray((payload as any)?.data)
-                    ? (payload as any).data.length
-                    : Array.isArray(payload)
-                      ? (payload as any).length
-                      : 0)),
-        from: (payload as any)?.from ?? 0,
-        to: (payload as any)?.to ?? 0,
-      };
-
-      return normalized;
+      // Use pagination utility
+      const paginatedResponse = normalizePaginatedResponse<StudentRegistration>(
+        response.data,
+        cleanedParams
+      );
+      
+      logger.debug('Applications fetched', {
+        count: paginatedResponse.data.length,
+        total: paginatedResponse.total,
+        pending: paginatedResponse.data.filter(a => a.status === 'pending').length
+      });
+      
+      return paginatedResponse;
     } catch (error: any) {
+      logger.error('Failed to fetch applications', error, { params });
+      
+      // Retry once on 404 (in case of endpoint changes)
       if (error?.response?.status === 404) {
         try {
-          // Retry legacy path
-          const response = await apiClient.get('/applications', { params: cleanedParams });
-          const payload = response.data?.data ?? response.data;
-          const normalized: PaginatedResponse<StudentRegistration> = {
-            data: Array.isArray((payload as any)?.data)
-              ? (payload as any).data
-              : Array.isArray(payload)
-                ? (payload as StudentRegistration[])
-                : [],
-            current_page: (payload as any)?.current_page ?? params?.page ?? 1,
-            last_page: (payload as any)?.last_page ?? 1,
-            per_page: (payload as any)?.per_page ?? params?.per_page ?? 10,
-            total: (payload as any)?.total
-              ?? (((payload as any)?.last_page && (payload as any)?.per_page)
-                    ? Number((payload as any).last_page) * Number((payload as any).per_page)
-                    : (Array.isArray((payload as any)?.data)
-                        ? (payload as any).data.length
-                        : Array.isArray(payload)
-                          ? (payload as any).length
-                          : 0)),
-            from: (payload as any)?.from ?? 0,
-            to: (payload as any)?.to ?? 0,
-          };
-          return normalized;
-        } catch (legacyError: any) {
-          if (legacyError?.response?.status === 404) {
-            console.warn('⚠️ [Applications] 404 received on both paths - returning empty list');
+          logger.log('Retrying applications fetch after 404');
+          const retryResponse = await apiClient.get('/applications', { params: cleanedParams });
+          
+          const paginatedResponse = normalizePaginatedResponse<StudentRegistration>(
+            retryResponse.data,
+            cleanedParams
+          );
+          
+          return paginatedResponse;
+        } catch (retryError: any) {
+          // If retry also fails with 404, return empty list (idempotent)
+          if (retryError?.response?.status === 404) {
+            logger.warn('404 received on both paths - returning empty list');
             return {
               data: [],
               current_page: 1,
@@ -87,22 +59,38 @@ export const applicationsService = {
               to: 0,
             } as PaginatedResponse<StudentRegistration>;
           }
-          throw legacyError;
+          logger.error('Retry failed', retryError);
+          throw handleApiError(retryError, { endpoint: '/applications', params });
         }
       }
-      throw error;
+      
+      throw handleApiError(error, { endpoint: '/applications', params });
     }
   },
 
   getApplication: async (id: number): Promise<StudentRegistration> => {
-    const response = await apiClient.get(`/applications/${id}`);
-    const payload = response.data?.data ?? response.data;
-    return payload as StudentRegistration;
+    try {
+      logger.log('Fetching application', { id });
+      const response = await apiClient.get(`/applications/${id}`);
+      const application = normalizeItemResponse<StudentRegistration>(response.data);
+      logger.log('Application fetched successfully', { id });
+      return application;
+    } catch (error: any) {
+      logger.error('Failed to fetch application', error, { id });
+      throw handleApiError(error, { endpoint: `/applications/${id}` });
+    }
   },
 
   updateApplicationStatus: async (id: number, status: string): Promise<StudentRegistration> => {
-    const response = await apiClient.put(`/applications/${id}/status`, { status });
-    const payload = response.data?.data ?? response.data;
-    return payload as StudentRegistration;
+    try {
+      logger.log('Updating application status', { id, status });
+      const response = await apiClient.put(`/applications/${id}/status`, { status });
+      const application = normalizeItemResponse<StudentRegistration>(response.data);
+      logger.log('Application status updated successfully', { id, status });
+      return application;
+    } catch (error: any) {
+      logger.error('Failed to update application status', error, { id, status });
+      throw handleApiError(error, { endpoint: `/applications/${id}/status`, method: 'PUT' });
+    }
   },
 };
