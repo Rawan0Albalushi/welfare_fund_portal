@@ -9,6 +9,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { DataTable, type Column } from '../components/common/DataTable';
 import type { FinancialReportResponse } from '../api/services/reports';
 import type { Campaign, Donation } from '../types';
+import { logger } from '../utils/logger';
 
 export const FinancialReport: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -41,12 +42,13 @@ export const FinancialReport: React.FC = () => {
         to_date: toDate || undefined,
         period: period,
       });
-      console.log('📊 [FinancialReport] Response received:', response);
-      console.log('📊 [FinancialReport] Response data:', response?.data);
-      console.log('📊 [FinancialReport] Summary:', response?.data?.summary);
+      logger.debug('Financial report response received', {
+        hasData: !!response?.data,
+        hasSummary: !!response?.data?.summary
+      });
       setReportData(response);
     } catch (err: any) {
-      console.error('Failed to load financial report:', err);
+      logger.error('Failed to load financial report', err);
       setError(err?.message || t('errors.server_error'));
     } finally {
       setLoading(false);
@@ -66,7 +68,7 @@ export const FinancialReport: React.FC = () => {
           setCampaigns(response.data || []);
         }
       } catch (error) {
-        console.error('Failed to load campaigns:', error);
+        logger.error('Failed to load campaigns', error);
       }
     };
 
@@ -102,7 +104,7 @@ export const FinancialReport: React.FC = () => {
         period: period,
       });
     } catch (error: any) {
-      console.error('Export failed:', error);
+      logger.error('Export failed', error);
       if (typeof window !== 'undefined') {
         const message = error?.message || t('errors.server_error');
         const event = new CustomEvent('app:snackbar', { detail: { message, severity: 'error' } });
@@ -122,7 +124,7 @@ export const FinancialReport: React.FC = () => {
         period: period,
       });
     } catch (error: any) {
-      console.error('Export failed:', error);
+      logger.error('Export failed', error);
       if (typeof window !== 'undefined') {
         const message = error?.message || 'فشل التصدير إلى PDF';
         const event = new CustomEvent('app:snackbar', { detail: { message, severity: 'error' } });

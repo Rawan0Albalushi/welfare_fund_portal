@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../hooks/useAuth';
+import { logger } from '../../utils/logger';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -16,7 +17,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { language, setLanguage, isRTL } = useLanguage();
   const { user, logout } = useAuth();
 
-  console.log('🎯 [Header] Render at:', new Date().toISOString(), {
+  logger.debug('Header render', {
     hasUser: !!user,
     userName: user?.name
   });
@@ -28,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     try {
       await logout();
     } catch (e) {
-      console.error('❌ [Header] Logout failed, forcing client-side logout redirect.', e);
+      logger.error('Logout failed, forcing client-side logout redirect', e);
       // Ensure client-side cleanup on failure as well
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');

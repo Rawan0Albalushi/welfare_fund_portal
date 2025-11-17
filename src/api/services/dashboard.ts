@@ -1,5 +1,7 @@
 import apiClient from '../axios';
 import { type DashboardStats } from '../../types';
+import { logger } from '../../utils/logger';
+import { handleApiError } from '../../utils/errorHandler';
 
 /**
  * Normalizes a value to a number, handling strings, nulls, and undefined
@@ -20,25 +22,28 @@ const normalizeNumber = (value: any): number => {
 
 export const dashboardService = {
   getDashboard: async (): Promise<any> => {
-    const response = await apiClient.get('/dashboard');
-    return response.data?.data ?? response.data;
+    try {
+      logger.log('Fetching dashboard data');
+      const response = await apiClient.get('/dashboard');
+      return response.data?.data ?? response.data;
+    } catch (error: any) {
+      logger.error('Failed to fetch dashboard data', error);
+      throw handleApiError(error, { endpoint: '/dashboard' });
+    }
   },
 
   getStats: async (): Promise<DashboardStats> => {
     // Try /stats endpoint first
     try {
+      logger.log('Fetching dashboard stats from /stats endpoint');
       const response = await apiClient.get('/stats');
-      
-      // Debug logging - log the entire response structure
-      console.log('📊 [Dashboard Stats] Full response:', response);
-      console.log('📊 [Dashboard Stats] Response data:', response.data);
-      console.log('📊 [Dashboard Stats] Response data?.data:', response.data?.data);
       
       const payload = response.data?.data ?? response.data;
       
-      console.log('📊 [Dashboard Stats] Final payload:', payload);
-      console.log('📊 [Dashboard Stats] Payload keys:', payload ? Object.keys(payload) : 'payload is null/undefined');
-      console.log('📊 [Dashboard Stats] Payload type:', typeof payload);
+      logger.debug('Stats payload received', {
+        hasPayload: !!payload,
+        payloadKeys: payload ? Object.keys(payload) : []
+      });
       
       // Try multiple possible field names (snake_case, camelCase, and other variations)
       const stats: DashboardStats = {
@@ -72,8 +77,7 @@ export const dashboardService = {
         ),
       };
       
-      // Log all possible field values found
-      console.log('📊 [Dashboard Stats] Found fields in payload:', {
+      logger.debug('Found fields in payload', {
         total_donations: payload?.total_donations,
         totalDonations: payload?.totalDonations,
         donations_count: payload?.donations_count,
@@ -88,12 +92,11 @@ export const dashboardService = {
         applications_pending: payload?.applications_pending,
       });
       
-      // Log normalized values for debugging
-      console.log('📊 [Dashboard Stats] Normalized stats:', stats);
+      logger.debug('Normalized stats', stats);
       
       // Validate that we have reasonable values
       if (stats.total_donations < 0 || stats.active_programs < 0 || stats.pending_applications < 0 || stats.total_amount < 0) {
-        console.warn('⚠️ [Dashboard Stats] Negative values detected, setting to 0');
+        logger.warn('Negative values detected, setting to 0');
         stats.total_donations = Math.max(0, stats.total_donations);
         stats.total_amount = Math.max(0, stats.total_amount);
         stats.active_programs = Math.max(0, stats.active_programs);
@@ -102,21 +105,20 @@ export const dashboardService = {
       
       // Check if all values are zero - this might indicate the API returned empty data or wrong structure
       if (stats.total_donations === 0 && stats.total_amount === 0 && stats.active_programs === 0 && stats.pending_applications === 0) {
-        console.warn('⚠️ [Dashboard Stats] All stats are zero! This might indicate:');
-        console.warn('  1. The API endpoint returned empty/wrong data');
-        console.warn('  2. The field names don\'t match');
-        console.warn('  3. There\'s actually no data in the database');
-        console.warn('  Full payload for inspection:', JSON.stringify(payload, null, 2));
+        logger.warn('All stats are zero! This might indicate empty/wrong data from API', {
+          payload: JSON.stringify(payload, null, 2)
+        });
       }
       
       return stats;
     } catch (error: any) {
-      console.warn('⚠️ [Dashboard Stats] /stats endpoint failed, trying /dashboard endpoint:', error?.response?.status);
+      logger.warn('/stats endpoint failed, trying /dashboard endpoint', { status: error?.response?.status });
       
       // Try /dashboard endpoint as fallback
       try {
+        logger.log('Trying /dashboard endpoint as fallback');
         const dashboardResponse = await apiClient.get('/dashboard');
-        console.log('📊 [Dashboard Stats] Dashboard endpoint response:', dashboardResponse.data);
+        logger.debug('Dashboard endpoint response received');
         
         const dashboardPayload = dashboardResponse.data?.data ?? dashboardResponse.data;
         
@@ -141,17 +143,18 @@ export const dashboardService = {
           };
         }
         
-        console.warn('⚠️ [Dashboard Stats] Dashboard endpoint did not contain stats data');
+        logger.warn('Dashboard endpoint did not contain stats data');
       } catch (dashboardError: any) {
-        console.error('🚨 [Dashboard Stats] Both /stats and /dashboard endpoints failed');
-        console.error('🚨 [Dashboard Stats] Stats error:', error);
-        console.error('🚨 [Dashboard Stats] Dashboard error:', dashboardError);
-        console.error('🚨 [Dashboard Stats] Stats error response:', error?.response);
-        console.error('🚨 [Dashboard Stats] Stats error status:', error?.response?.status);
+        logger.error('Both /stats and /dashboard endpoints failed', dashboardError, {
+          statsError: error,
+          dashboardError: dashboardError,
+          statsErrorStatus: error?.response?.status
+        });
       }
       
       // Return default stats on error instead of throwing
       // This allows the dashboard to render with 0 values
+      logger.warn('Returning default stats (all zeros) due to errors');
       return {
         total_donations: 0,
         total_amount: 0,

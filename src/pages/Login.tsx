@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { type LoginRequest } from '../types';
 import { FormField } from '../components/common/FormField';
+import { logger } from '../utils/logger';
 
 export const Login: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -15,7 +16,7 @@ export const Login: React.FC = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      console.log('🔄 [Login] User is already authenticated, redirecting...');
+      logger.debug('User is already authenticated, redirecting');
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, navigate]);
@@ -26,7 +27,7 @@ export const Login: React.FC = () => {
     const user = localStorage.getItem('admin_user');
     
     if (token && user) {
-      console.log('🔄 [Login] Found existing auth data, redirecting...');
+      logger.debug('Found existing auth data, redirecting');
       navigate('/dashboard', { replace: true });
     }
   }, [navigate]);
@@ -45,10 +46,10 @@ export const Login: React.FC = () => {
   const onSubmit = async (data: LoginRequest) => {
     try {
       setLoginError('');
-      console.log('🚀 [Login] Starting login process with data:', data);
+      logger.auth('Starting login process', { email: data.email });
       
-      const result = await login(data);
-      console.log('✅ [Login] Login completed successfully:', result);
+      await login(data);
+      logger.auth('Login completed successfully');
       
       // Wait a bit for the mutation to complete
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -60,30 +61,26 @@ export const Login: React.FC = () => {
       try {
         parsedUserName = userStr ? JSON.parse(userStr).name : null;
       } catch (e) {
-        console.warn('⚠️ [Login] Failed to parse admin_user from localStorage');
+        logger.warn('Failed to parse admin_user from localStorage');
       }
       
-      console.log('🔍 [Login] Post-login check:', {
+      logger.debug('Post-login check', {
         hasToken: !!token,
         hasUser: !!userStr,
-        tokenValue: token ? token.substring(0, 20) + '...' : null,
-        userValue: parsedUserName,
-        timestamp: new Date().toISOString()
+        userName: parsedUserName
       });
       
       if (token && userStr) {
-        console.log('🎯 [Login] Redirecting to dashboard...');
+        logger.auth('Redirecting to dashboard');
         // Force page reload to ensure auth state is properly initialized
         window.location.href = '/dashboard';
       } else {
-        console.error('❌ [Login] Missing token or user data after login');
+        logger.error('Missing token or user data after login');
         setLoginError('Login successful but authentication data is missing');
       }
     } catch (err: any) {
-      console.error('❌ [Login] Login failed:', err);
-      console.error('❌ [Login] Error details:', {
+      logger.error('Login failed', err, {
         message: err.message,
-        response: err.response?.data,
         status: err.response?.status,
         code: err.code
       });

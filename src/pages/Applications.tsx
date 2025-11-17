@@ -9,6 +9,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { type StudentRegistration } from '../types';
 import { Modal } from '../components/common/Modal';
 import apiClient from '../api/axios';
+import { logger } from '../utils/logger';
 
 export const Applications: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -516,7 +517,7 @@ export const Applications: React.FC = () => {
                                     // Clean up after a delay
                                     setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
                                   } catch (err) {
-                                    console.error('Error fetching image:', err);
+                                    logger.error('Error fetching image', err);
                                     // Fallback: try to open the direct URL
                                     window.open(imageUrl, '_blank', 'noopener');
                                   }
@@ -554,7 +555,7 @@ export const Applications: React.FC = () => {
                                     a.remove();
                                     URL.revokeObjectURL(blobUrl);
                                   } catch (err) {
-                                    console.error('Error downloading image:', err);
+                                    logger.error('Error downloading image', err);
                                     // Fallback: try direct download
                                     if (imageUrl) {
                                       const a = document.createElement('a');

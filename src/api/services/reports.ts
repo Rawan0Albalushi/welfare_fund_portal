@@ -1,4 +1,5 @@
 import apiClient from '../axios';
+import { logger } from '../../utils/logger';
 
 export interface DonationsReportParams {
   from_date?: string; // Y-m-d format
@@ -183,11 +184,10 @@ export const reportsService = {
     const response = await apiClient.get('/reports/financial', { params: cleanedParams });
     
     // Debug logging for financial report
-    console.log('📊 [Financial Report] Raw response:', response.data);
-    console.log('📊 [Financial Report] Response data:', response.data?.data);
-    if (response.data?.data?.summary) {
-      console.log('📊 [Financial Report] Summary:', response.data.data.summary);
-    }
+    logger.debug('Financial report fetched', {
+      hasData: !!response.data,
+      hasSummary: !!response.data?.data?.summary
+    });
     
     return response.data;
   },

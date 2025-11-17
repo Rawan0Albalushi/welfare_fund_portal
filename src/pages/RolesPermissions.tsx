@@ -1,6 +1,7 @@
 import React from 'react';
 import { rolesService } from '../api/services/roles';
 import { permissionsService } from '../api/services/permissions';
+import { logger } from '../utils/logger';
 
 export const RolesPermissions: React.FC = () => {
 	const [roles, setRoles] = React.useState<any[]>([]);
@@ -25,7 +26,7 @@ export const RolesPermissions: React.FC = () => {
 			setRoles(r.data ?? []);
 			setPermissions(p.data ?? []);
 		} catch (e: any) {
-			console.error('Failed to load roles and permissions:', e);
+			logger.error('Failed to load roles and permissions', e);
 			if (e?.response?.status === 404) {
 				setError('Roles & Permissions API endpoints are not yet implemented on the backend server.');
 			} else {

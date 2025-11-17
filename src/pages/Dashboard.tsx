@@ -10,6 +10,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { StatCard } from '../components/common/StatCard';
 import { useLanguage } from '../contexts/LanguageContext';
 import { reportsService } from '../api/services/reports';
+import { logger } from '../utils/logger';
 
 export const Dashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -53,28 +54,27 @@ export const Dashboard: React.FC = () => {
 
   // Debug logging
   React.useEffect(() => {
-    console.log('🏠 [Dashboard] Component rendered with state:', {
-      stats,
+    logger.debug('Dashboard component rendered', {
+      hasStats: !!stats,
       statsLoading,
-      statsError,
-      recentDonations,
+      hasStatsError: !!statsError,
+      hasRecentDonations: !!recentDonations,
       donationsLoading,
-      donationsError,
-      recentApplications,
+      hasDonationsError: !!donationsError,
+      hasRecentApplications: !!recentApplications,
       applicationsLoading,
-      applicationsError,
-      timestamp: new Date().toISOString()
+      hasApplicationsError: !!applicationsError
     });
   }, [stats, statsLoading, statsError, recentDonations, donationsLoading, donationsError, recentApplications, applicationsLoading, applicationsError]);
 
   // Error boundary for dashboard
   if (statsError && !statsLoading) {
-    console.error('🚨 [Dashboard] Critical error detected:', statsError);
+    logger.error('Critical error detected in dashboard', statsError);
   }
 
   // Check for critical errors that should prevent rendering
   if (statsError && statsError.message?.includes('Invalid')) {
-    console.error('🚨 [Dashboard] Invalid data error, clearing localStorage');
+    logger.error('Invalid data error, clearing localStorage and redirecting');
     localStorage.removeItem('admin_token');
     localStorage.removeItem('admin_user');
     window.location.href = '/login';
@@ -92,18 +92,16 @@ export const Dashboard: React.FC = () => {
     const hasValidDonations = donationsData && Array.isArray(donationsData);
     const hasValidApplications = applicationsData && Array.isArray(applicationsData);
     
-    console.log('🔍 [Dashboard] Data validation:', {
+    logger.debug('Data validation', {
       hasValidDonations,
       hasValidApplications,
-      donationsData,
-      applicationsData,
       recentDonationsType: typeof recentDonations,
       recentApplicationsType: typeof recentApplications,
       isDonationsArray: Array.isArray(recentDonations),
       isApplicationsArray: Array.isArray(recentApplications)
     });
   } catch (error) {
-    console.error('🚨 [Dashboard] Error in data validation:', error);
+    logger.error('Error in data validation', error);
     donationsData = [];
     applicationsData = [];
   }
@@ -137,7 +135,7 @@ export const Dashboard: React.FC = () => {
         maximumFractionDigits: 2,
       }).format(amount);
     } catch (error) {
-      console.error('🚨 [Dashboard] Error formatting currency:', error);
+      logger.error('Error formatting currency', error);
       return 'ر.ع. 0.00';
     }
   };
@@ -153,7 +151,7 @@ export const Dashboard: React.FC = () => {
         maximumFractionDigits: 0,
       }).format(num);
     } catch (error) {
-      console.error('🚨 [Dashboard] Error formatting number:', error);
+      logger.error('Error formatting number', error);
       return String(num || 0);
     }
   };
@@ -176,7 +174,7 @@ export const Dashboard: React.FC = () => {
       const cfg = map[status] || { label: status, cls: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200' };
       return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>{cfg.label}</span>;
     } catch (error) {
-      console.error('🚨 [Dashboard] Error creating status pill:', error);
+      logger.error('Error creating status pill', error);
       return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">Error</span>;
     }
   };
@@ -458,12 +456,11 @@ export const Dashboard: React.FC = () => {
                       
                       // Debug log if amount is 0 to help diagnose
                       if (donationAmount === 0 && donation?.id) {
-                        console.warn('⚠️ [Dashboard] Donation with 0 amount:', {
+                        logger.warn('Donation with 0 amount', {
                           id: donation.id,
                           donation_id: donation.donation_id,
                           amount: donation.amount,
-                          paid_amount: donation.paid_amount,
-                          fullDonation: donation
+                          paid_amount: donation.paid_amount
                         });
                       }
                       
@@ -476,7 +473,7 @@ export const Dashboard: React.FC = () => {
                         </tr>
                       );
                     } catch (error) {
-                      console.error('🚨 [Dashboard] Error rendering donation row:', error, donation);
+                      logger.error('Error rendering donation row', error, { donationId: donation?.id });
                       return null;
                     }
                   }) : null}
@@ -546,7 +543,7 @@ export const Dashboard: React.FC = () => {
                         </tr>
                       );
                     } catch (error) {
-                      console.error('🚨 [Dashboard] Error rendering application row:', error, application);
+                      logger.error('Error rendering application row', error, { applicationId: application?.id });
                       return null;
                     }
                   }) : null}

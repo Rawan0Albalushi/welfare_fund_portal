@@ -17,6 +17,7 @@ import { Users } from './pages/Users';
 // import { RolesPermissions } from './pages/RolesPermissions';
 // import { AuditLogs } from './pages/AuditLogs';
 import { FinancialReport } from './pages/FinancialReport';
+import { logger } from './utils/logger';
 import './i18n';
 
 // Create a client
@@ -36,10 +37,9 @@ const queryClient = new QueryClient({
 // Add query client event listeners for debugging
 queryClient.getQueryCache().subscribe((event) => {
   if (event.query.queryKey[0] === 'auth') {
-    console.log('🔍 [React Query] Auth query event:', {
+    logger.debug('React Query auth query event', {
       type: event.type,
       queryKey: event.query.queryKey,
-      timestamp: new Date().toISOString(),
       state: event.query.state.status
     });
   }

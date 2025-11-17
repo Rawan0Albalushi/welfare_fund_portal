@@ -11,6 +11,7 @@ import { Loader } from '../components/common/Loader';
 import { EmptyState } from '../components/common/EmptyState';
 import { type Campaign, type Donation } from '../types';
 import { Modal } from '../components/common/Modal';
+import { logger } from '../utils/logger';
 
 export const Donations: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -39,7 +40,7 @@ export const Donations: React.FC = () => {
         const res = await campaignsService.getCampaigns({ per_page: 100 });
         setCampaigns(res.data ?? []);
       } catch (e) {
-        console.error('Failed to load campaigns:', e);
+        logger.error('Failed to load campaigns', e);
       }
     };
     void loadCampaigns();
@@ -153,7 +154,7 @@ export const Donations: React.FC = () => {
         campaign_id: campaignFilter ? Number(campaignFilter) : undefined,
       });
     } catch (error: any) {
-      console.error('Export failed:', error);
+      logger.error('Export failed', error);
       if (typeof window !== 'undefined') {
         const message = error?.message || 'فشل التصدير إلى Excel';
         const event = new CustomEvent('app:snackbar', { detail: { message, severity: 'error' } });
@@ -176,7 +177,7 @@ export const Donations: React.FC = () => {
         campaign_id: campaignFilter ? Number(campaignFilter) : undefined,
       });
     } catch (error: any) {
-      console.error('Export failed:', error);
+      logger.error('Export failed', error);
       if (typeof window !== 'undefined') {
         const message = error?.message || 'فشل التصدير إلى PDF';
         const event = new CustomEvent('app:snackbar', { detail: { message, severity: 'error' } });
