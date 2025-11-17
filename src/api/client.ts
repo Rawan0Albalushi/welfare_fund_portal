@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import { config } from '../config/env';
-import { getUserFriendlyError } from '../utils/error';
+import { logger } from '../utils/logger';
+import { toUserFriendlyError } from '../utils/errorHandler';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -26,13 +27,14 @@ apiClient.interceptors.request.use(
     }
     
     // Log all requests
-    console.log('🌐 [API] Request:', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      timestamp: new Date().toISOString(),
-      hasToken: !!token,
-      isFormData: config.data instanceof FormData
-    });
+    logger.apiRequest(
+      config.method?.toUpperCase() || 'UNKNOWN',
+      config.url || '',
+      {
+        hasToken: !!token,
+        isFormData: config.data instanceof FormData
+      }
+    );
     
     return config;
   },
@@ -45,26 +47,24 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     // Log successful responses
-    console.log('✅ [API] Response:', {
-      method: response.config.method?.toUpperCase(),
-      url: response.config.url,
-      status: response.status,
-      timestamp: new Date().toISOString()
-    });
+    logger.apiResponse(
+      response.config.method?.toUpperCase() || 'UNKNOWN',
+      response.config.url || '',
+      response.status
+    );
     return response;
   },
   (error) => {
     // Log error responses
-    console.log('❌ [API] Error:', {
-      method: error.config?.method?.toUpperCase(),
-      url: error.config?.url,
-      status: error.response?.status,
-      timestamp: new Date().toISOString()
-    });
+    logger.apiResponse(
+      error.config?.method?.toUpperCase() || 'UNKNOWN',
+      error.config?.url || '',
+      error.response?.status || 0
+    );
     
     // Build a localized, user-friendly error and show global snackbar
     try {
-      const friendly = getUserFriendlyError(error);
+      const friendly = toUserFriendlyError(error);
       if (typeof window !== 'undefined') {
         const event = new CustomEvent('app:snackbar', { detail: friendly });
         window.dispatchEvent(event);

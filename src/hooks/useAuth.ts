@@ -2,14 +2,15 @@ import React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authService } from '../api/services/auth';
 import { type LoginRequest, type AuthUser, type AdminUser } from '../types';
+import { logger } from '../utils/logger';
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
 
-  console.log('🔄 [useAuth] Hook called at:', new Date().toISOString());
+  logger.debug('useAuth hook called');
 
   const hasToken = !!localStorage.getItem('admin_token');
-  console.log('🔑 [useAuth] Token check:', { hasToken });
+  logger.debug('Token check', { hasToken });
 
   // Get current admin user
   const { data: admin, isLoading, error } = useQuery({
@@ -30,21 +31,19 @@ export const useAuth = () => {
     enabled: hasToken, // Only run if token exists
   });
 
-  console.log('📊 [useAuth] Query state:', { 
+  logger.debug('Query state', { 
     hasAdmin: !!admin, 
     isLoading, 
-    hasError: !!error,
-    timestamp: new Date().toISOString()
+    hasError: !!error
   });
 
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: authService.login,
     onSuccess: (data: AuthUser) => {
-      console.log('🎉 [useAuth] Login successful:', {
+      logger.auth('Login successful', {
         hasToken: !!data.token,
-        hasAdmin: !!data.admin,
-        timestamp: new Date().toISOString()
+        hasAdmin: !!data.admin
       });
       
       try {
@@ -60,16 +59,16 @@ export const useAuth = () => {
         // Force refetch to ensure the query state is updated
         queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
         
-        console.log('💾 [useAuth] Data saved to localStorage and query cache');
+        logger.debug('Data saved to localStorage and query cache');
       } catch (error) {
-        console.error('🚨 [useAuth] Error saving to localStorage:', error);
+        logger.error('Error saving to localStorage', error);
         // Clear potentially corrupted data
         localStorage.removeItem('admin_token');
         localStorage.removeItem('admin_user');
       }
     },
     onError: (error) => {
-      console.error('❌ [useAuth] Login failed:', error);
+      logger.error('Login failed', error);
     },
   });
 
@@ -94,10 +93,10 @@ export const useAuth = () => {
   });
 
   const login = async (credentials: LoginRequest) => {
-    console.log('🔐 [useAuth] Login function called with:', credentials);
+    logger.auth('Login function called', { email: credentials.email });
     try {
       const result = await loginMutation.mutateAsync(credentials);
-      console.log('🎉 [useAuth] Login mutation completed:', result);
+      logger.auth('Login mutation completed');
       
       // Validate response structure
       if (!result || !result.token) {
@@ -111,7 +110,7 @@ export const useAuth = () => {
       
       return result;
     } catch (error) {
-      console.error('❌ [useAuth] Login mutation failed:', error);
+      logger.error('Login mutation failed', error);
       throw error;
     }
   };
@@ -129,11 +128,10 @@ export const useAuth = () => {
     const adminExists = !!admin;
     const result = tokenExists && adminExists;
     
-    console.log('🔐 [useAuth] isAuthenticated calculation:', {
+    logger.debug('isAuthenticated calculation', {
       tokenExists,
       adminExists,
-      result,
-      timestamp: new Date().toISOString()
+      result
     });
     
     return result;
