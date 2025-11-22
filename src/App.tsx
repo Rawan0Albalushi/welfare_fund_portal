@@ -18,6 +18,7 @@ import { Users } from './pages/Users';
 // import { AuditLogs } from './pages/AuditLogs';
 import { FinancialReport } from './pages/FinancialReport';
 import { Banners } from './pages/Banners';
+import { StudentRegistrationCard } from './pages/StudentRegistrationCard';
 import { logger } from './utils/logger';
 import './i18n';
 
@@ -75,6 +76,7 @@ function App() {
                             <Route path="/financial-report" element={<FinancialReport />} />
                             <Route path="/users" element={<Users />} />
                             <Route path="/banners" element={<Banners />} />
+                            <Route path="/student-registration-card" element={<StudentRegistrationCard />} />
                             {/* <Route path="/roles-permissions" element={<RolesPermissions />} /> */}
                             {/* <Route path="/audit-logs" element={<AuditLogs />} /> */}
                             <Route path="/settings" element={<Settings />} />

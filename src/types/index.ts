@@ -170,6 +170,29 @@ export interface StudentRegistration extends BaseEntity {
   program?: Program;
 }
 
+export interface StudentRegistrationCard extends BaseEntity {
+  headline_ar: string;
+  headline_en: string;
+  subtitle_ar?: string | null;
+  subtitle_en?: string | null;
+  background?: string | null;
+  background_image?: string | null;
+  background_image_path?: string | null;
+  background_image_url?: string | null;
+  status: 'active' | 'inactive';
+}
+
+export interface UpdateStudentRegistrationCardRequest {
+  headline_ar?: string;
+  headline_en?: string;
+  subtitle_ar?: string;
+  subtitle_en?: string;
+  background?: string | Record<string, any> | any[] | null;
+  background_image?: string;
+  background_image_path?: string | null;
+  status?: 'active' | 'inactive';
+}
+
 // API Response types
 export interface ApiResponse<T> {
   data: T;
