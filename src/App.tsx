@@ -19,6 +19,8 @@ import { Users } from './pages/Users';
 import { FinancialReport } from './pages/FinancialReport';
 import { Banners } from './pages/Banners';
 import { StudentRegistrationCard } from './pages/StudentRegistrationCard';
+import { SettingsPages } from './pages/SettingsPages';
+import { EditSettingPage } from './pages/EditSettingPage';
 import { logger } from './utils/logger';
 import './i18n';
 
@@ -77,6 +79,8 @@ function App() {
                             <Route path="/users" element={<Users />} />
                             <Route path="/banners" element={<Banners />} />
                             <Route path="/student-registration-card" element={<StudentRegistrationCard />} />
+                            <Route path="/settings-pages" element={<SettingsPages />} />
+                            <Route path="/settings-pages/:key/edit" element={<EditSettingPage />} />
                             {/* <Route path="/roles-permissions" element={<RolesPermissions />} /> */}
                             {/* <Route path="/audit-logs" element={<AuditLogs />} /> */}
                             <Route path="/settings" element={<Settings />} />

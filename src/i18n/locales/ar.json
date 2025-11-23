@@ -57,6 +57,7 @@
     "users": "المستخدمون",
     "banners": "البانرات",
     "student_registration_card": "بطاقة تسجيل الطلاب",
+    "settings_pages": "صفحات الإعدادات",
     "roles_permissions": "الأدوار والصلاحيات",
     "audit_logs": "سجل العمليات",
     "settings": "الإعدادات"
@@ -298,6 +299,29 @@
     "preview_button_ar": "سجل الآن",
     "updated_success": "تم تحديث بطاقة التسجيل بنجاح",
     "update_failed": "فشل تحديث البطاقة"
+  },
+  "settings_pages": {
+    "title": "صفحات الإعدادات",
+    "description": "إدارة صفحات الإعدادات في النظام",
+    "key": "المفتاح",
+    "title_ar": "العنوان (عربي)",
+    "title_en": "العنوان (إنجليزي)",
+    "content_ar": "المحتوى (عربي)",
+    "content_en": "المحتوى (إنجليزي)",
+    "updated_at": "تاريخ التحديث",
+    "edit_title": "تعديل صفحة الإعدادات",
+    "edit_description": "تعديل محتوى صفحة الإعدادات",
+    "no_pages": "لا توجد صفحات إعدادات",
+    "no_pages_description": "لم يتم العثور على صفحات إعدادات",
+    "load_error": "فشل تحميل صفحات الإعدادات",
+    "updated_success": "تم تحديث صفحة الإعدادات بنجاح",
+    "update_failed": "فشل تحديث صفحة الإعدادات",
+    "title_ar_required": "العنوان بالعربية مطلوب",
+    "title_en_required": "العنوان بالإنجليزية مطلوب",
+    "title_ar_placeholder": "أدخل العنوان بالعربية",
+    "title_en_placeholder": "Enter title in English",
+    "content_ar_placeholder": "أدخل المحتوى بالعربية",
+    "content_en_placeholder": "Enter content in English"
   },
   "errors": {
     "network_error": "حدث خطأ في الشبكة",

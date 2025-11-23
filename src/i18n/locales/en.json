@@ -57,6 +57,7 @@
     "users": "Users",
     "banners": "Banners",
     "student_registration_card": "Student Registration Card",
+    "settings_pages": "Settings Pages",
     "roles_permissions": "Roles & Permissions",
     "audit_logs": "Audit Logs",
     "settings": "Settings"
@@ -298,6 +299,29 @@
     "preview_button_ar": "سجل الآن",
     "updated_success": "Registration card updated successfully",
     "update_failed": "Failed to update registration card"
+  },
+  "settings_pages": {
+    "title": "Settings Pages",
+    "description": "Manage settings pages in the system",
+    "key": "Key",
+    "title_ar": "Title (Arabic)",
+    "title_en": "Title (English)",
+    "content_ar": "Content (Arabic)",
+    "content_en": "Content (English)",
+    "updated_at": "Updated At",
+    "edit_title": "Edit Settings Page",
+    "edit_description": "Edit settings page content",
+    "no_pages": "No settings pages found",
+    "no_pages_description": "No settings pages match your criteria",
+    "load_error": "Failed to load settings pages",
+    "updated_success": "Settings page updated successfully",
+    "update_failed": "Failed to update settings page",
+    "title_ar_required": "Arabic title is required",
+    "title_en_required": "English title is required",
+    "title_ar_placeholder": "Enter title in Arabic",
+    "title_en_placeholder": "Enter title in English",
+    "content_ar_placeholder": "Enter content in Arabic",
+    "content_en_placeholder": "Enter content in English"
   },
   "errors": {
     "network_error": "Network error occurred",

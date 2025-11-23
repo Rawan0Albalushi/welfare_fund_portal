@@ -86,6 +86,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
       path: '/student-registration-card',
     },
     {
+      id: 'settingsPages',
+      label: t('navigation.settings_pages'),
+      icon: <span>📝</span>,
+      path: '/settings-pages',
+    },
+    {
       id: 'settings',
       label: t('navigation.settings'),
       icon: <span>⚙️</span>,
@@ -294,6 +300,12 @@ export const PermanentSidebar: React.FC<{ drawerWidth: number }> = ({ drawerWidt
       label: t('navigation.student_registration_card'),
       icon: <span>🪪</span>,
       path: '/student-registration-card',
+    },
+    {
+      id: 'settingsPages',
+      label: t('navigation.settings_pages'),
+      icon: <span>📝</span>,
+      path: '/settings-pages',
     },
     {
       id: 'settings',
