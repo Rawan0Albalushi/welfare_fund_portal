@@ -92,6 +92,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
       path: '/settings-pages',
     },
     {
+      id: 'sendNotification',
+      label: t('navigation.send_notification'),
+      icon: <span>📬</span>,
+      path: '/send-notification',
+    },
+    {
       id: 'settings',
       label: t('navigation.settings'),
       icon: <span>⚙️</span>,
@@ -306,6 +312,12 @@ export const PermanentSidebar: React.FC<{ drawerWidth: number }> = ({ drawerWidt
       label: t('navigation.settings_pages'),
       icon: <span>📝</span>,
       path: '/settings-pages',
+    },
+    {
+      id: 'sendNotification',
+      label: t('navigation.send_notification'),
+      icon: <span>📬</span>,
+      path: '/send-notification',
     },
     {
       id: 'settings',

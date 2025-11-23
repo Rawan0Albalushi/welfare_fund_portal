@@ -21,6 +21,7 @@ import { Banners } from './pages/Banners';
 import { StudentRegistrationCard } from './pages/StudentRegistrationCard';
 import { SettingsPages } from './pages/SettingsPages';
 import { EditSettingPage } from './pages/EditSettingPage';
+import { SendNotification } from './pages/SendNotification';
 import { logger } from './utils/logger';
 import './i18n';
 
@@ -81,6 +82,7 @@ function App() {
                             <Route path="/student-registration-card" element={<StudentRegistrationCard />} />
                             <Route path="/settings-pages" element={<SettingsPages />} />
                             <Route path="/settings-pages/:key/edit" element={<EditSettingPage />} />
+                            <Route path="/send-notification" element={<SendNotification />} />
                             {/* <Route path="/roles-permissions" element={<RolesPermissions />} /> */}
                             {/* <Route path="/audit-logs" element={<AuditLogs />} /> */}
                             <Route path="/settings" element={<Settings />} />
