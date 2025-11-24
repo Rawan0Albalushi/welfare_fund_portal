@@ -97,12 +97,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, drawerWidth }) 
       icon: <span>📬</span>,
       path: '/send-notification',
     },
-    {
-      id: 'settings',
-      label: t('navigation.settings'),
-      icon: <span>⚙️</span>,
-      path: '/settings',
-    },
   ], [t]);
 
   const handleNavigation = (path: string) => {
@@ -318,12 +312,6 @@ export const PermanentSidebar: React.FC<{ drawerWidth: number }> = ({ drawerWidt
       label: t('navigation.send_notification'),
       icon: <span>📬</span>,
       path: '/send-notification',
-    },
-    {
-      id: 'settings',
-      label: t('navigation.settings'),
-      icon: <span>⚙️</span>,
-      path: '/settings',
     },
   ], [t]);
 

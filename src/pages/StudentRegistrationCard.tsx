@@ -103,6 +103,71 @@ export const StudentRegistrationCard: React.FC = () => {
     [headlineEnPreview, headlineArPreview, subtitleEnPreview, subtitleArPreview, t],
   );
 
+  const hexToRgba = (hex: string, alpha: number = 1): string => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return `rgba(0, 0, 0, ${alpha})`;
+    const r = parseInt(result[1], 16);
+    const g = parseInt(result[2], 16);
+    const b = parseInt(result[3], 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const extractColorsFromBackground = (value?: string | Record<string, any> | null): { from: string; to: string; angle: string } | null => {
+    if (!value) {
+      return null;
+    }
+
+    const parseFromObject = (obj: Record<string, any>) => {
+      if (obj?.type === 'gradient') {
+        const from = obj.color_from || obj.from || '#2563eb';
+        const to = obj.color_to || obj.to || '#9333ea';
+        const angle = obj.angle || '135deg';
+        return { from, to, angle };
+      }
+      if (obj?.type === 'color' || obj?.color) {
+        const color = obj.color || obj.value || '#2563eb';
+        return { from: color, to: color, angle: '135deg' };
+      }
+      return null;
+    };
+
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return null;
+      }
+
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === 'object') {
+          return parseFromObject(parsed);
+        }
+      } catch {
+        // not JSON; check if it's a gradient string
+        if (trimmed.startsWith('linear-gradient') || trimmed.startsWith('radial-gradient')) {
+          // Try to extract colors from gradient string
+          const colorMatch = trimmed.match(/#[a-fA-F0-9]{6}|#[a-fA-F0-9]{3}|rgb\([^)]+\)|rgba\([^)]+\)/g);
+          if (colorMatch && colorMatch.length >= 2) {
+            return { from: colorMatch[0], to: colorMatch[1], angle: '135deg' };
+          } else if (colorMatch && colorMatch.length === 1) {
+            return { from: colorMatch[0], to: colorMatch[0], angle: '135deg' };
+          }
+        } else if (trimmed.match(/^#[a-fA-F0-9]{6}$|^#[a-fA-F0-9]{3}$/i)) {
+          // Single color
+          return { from: trimmed, to: trimmed, angle: '135deg' };
+        }
+      }
+
+      return null;
+    }
+
+    if (typeof value === 'object') {
+      return parseFromObject(value);
+    }
+
+    return null;
+  };
+
   const resolveBackgroundGradient = (value?: string | Record<string, any> | null): string => {
     if (!value) {
       return '';
@@ -153,9 +218,21 @@ export const StudentRegistrationCard: React.FC = () => {
         : 'linear-gradient(135deg, #2563eb, #9333ea)';
     const resolvedBackground = resolveBackgroundGradient(backgroundValue) || fallbackGradient;
     const isGradient = resolvedBackground.startsWith('linear-gradient') || resolvedBackground.startsWith('radial-gradient');
-    const overlayImage = backgroundImagePreview
-      ? `linear-gradient(135deg, rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.15)), url(${backgroundImagePreview})`
-      : undefined;
+    
+    // Extract colors from user's background for overlay
+    const extractedColors = extractColorsFromBackground(backgroundValue);
+    let overlayImage: string | undefined;
+    
+    if (backgroundImagePreview) {
+      if (extractedColors) {
+        const fromRgba = hexToRgba(extractedColors.from, 0.35);
+        const toRgba = hexToRgba(extractedColors.to, 0.15);
+        overlayImage = `linear-gradient(${extractedColors.angle}, ${fromRgba}, ${toRgba}), url(${backgroundImagePreview})`;
+      } else {
+        // Fallback to default overlay if colors can't be extracted
+        overlayImage = `linear-gradient(135deg, rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.15)), url(${backgroundImagePreview})`;
+      }
+    }
 
     const style: React.CSSProperties = {
       borderRadius: '1.8rem',
@@ -164,8 +241,9 @@ export const StudentRegistrationCard: React.FC = () => {
       boxShadow: '0 20px 35px rgba(15, 23, 42, 0.25)',
       position: 'relative',
       overflow: 'hidden',
-      backgroundSize: 'cover',
+      backgroundSize: 'contain',
       backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
     };
 
     if (overlayImage) {
@@ -263,51 +341,27 @@ export const StudentRegistrationCard: React.FC = () => {
               {previewCards.map((previewCard) => (
                 <div
                   key={previewCard.id}
-                  className="flex h-full flex-col justify-between text-white"
+                  className="flex h-full flex-col items-center justify-center text-white text-center"
                   dir={previewCard.direction}
                   style={buildCardStyle(previewCard.id)}
                 >
                   <div className="space-y-2">
-                    <p className="text-[0.65rem] uppercase tracking-[0.5em] text-white/70">
-                      {t('student_registration_card.preview_tagline')}
-                    </p>
                     <h3 className="text-xl font-semibold leading-tight">{previewCard.headline}</h3>
                     <p className="text-sm text-white/80">{previewCard.subtitle}</p>
                   </div>
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <span className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] bg-white/20 px-3 py-1 rounded-full">
-                      {t(`student_registration_card.status_${cardStatusLabel}`)}
-                    </span>
+                  <div className="mt-4 flex items-center justify-center gap-3">
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/90 px-4 py-1 text-sm font-semibold text-primary-600 shadow-sm shadow-black/20 transition hover:bg-white"
+                      className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-orange-600 shadow-md shadow-black/10 transition hover:bg-gray-50 hover:shadow-lg"
                     >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
                       <span className="text-sm">{previewCard.buttonLabel}</span>
-                      <span aria-hidden="true" className="text-lg leading-none text-primary-500">
-                        →
-                      </span>
                     </button>
                   </div>
                 </div>
               ))}
-            </div>
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
-              <p className="text-sm font-semibold text-slate-500">{t('student_registration_card.background_color')}</p>
-              <p className="text-xs text-slate-400">{t('student_registration_card.background_helper')}</p>
-              {backgroundImagePreview ? (
-                <div className="mt-3 space-y-1">
-                  <p className="text-xs font-semibold text-slate-500">{t('student_registration_card.background_preview')}</p>
-                  <div className="h-28 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    <img
-                      src={backgroundImagePreview}
-                      alt={t('student_registration_card.background_preview')}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <p className="mt-3 text-sm text-slate-400">{t('student_registration_card.no_background')}</p>
-              )}
             </div>
           </div>
         </article>

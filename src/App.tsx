@@ -9,7 +9,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Categories } from './pages/Categories';
 import { Programs } from './pages/Programs';
-import { Settings } from './pages/Settings';
+// import { Settings } from './pages/Settings';
 import { Donations } from './pages/Donations';
 import { Applications } from './pages/Applications';
 import { Campaigns } from './pages/Campaigns';
@@ -85,7 +85,7 @@ function App() {
                             <Route path="/send-notification" element={<SendNotification />} />
                             {/* <Route path="/roles-permissions" element={<RolesPermissions />} /> */}
                             {/* <Route path="/audit-logs" element={<AuditLogs />} /> */}
-                            <Route path="/settings" element={<Settings />} />
+                            {/* <Route path="/settings" element={<Settings />} /> */}
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
                           </Routes>
                         </AppLayout>
