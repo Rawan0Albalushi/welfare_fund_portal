@@ -61,23 +61,26 @@ export const Modal: React.FC<ModalProps> = ({
 					className={`w-full ${sizeToMaxWidth[size]} max-h-[calc(100vh-3rem)] sm:max-h-[calc(100vh-4rem)] flex flex-col rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden`}
 				>
 				{(title || icon) && (
-					<div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-primary-600 to-indigo-600 p-6">
+					<div 
+						className="relative shrink-0 overflow-hidden bg-gradient-to-r from-primary-600 via-primary-500 to-indigo-600 p-6"
+						dir={isRTL ? 'rtl' : 'ltr'}
+					>
 						<div className="absolute inset-0 bg-black/10" />
-						<div className="relative flex items-center gap-4">
+						<div className={`relative flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
 							{icon ? (
 								<div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl">
 									{icon}
 								</div>
 							) : null}
 							{title ? (
-								<div>
-									<h3 className="text-2xl font-bold text-white">{title}</h3>
+								<div className="flex-1">
+									<h3 className={`text-2xl font-bold text-white ${isRTL ? 'text-right' : 'text-left'}`}>{title}</h3>
 									<p className="text-primary-100 text-sm" />
 								</div>
 							) : null}
 							<button
 								type="button"
-								className={`ml-auto rounded-lg bg-white/10 hover:bg-white/20 text-white px-2 py-1 ${isRTL ? 'order-first' : ''}`}
+								className={`rounded-lg bg-white/10 hover:bg-white/20 text-white px-2 py-1 transition-colors ${isRTL ? 'mr-auto' : 'ml-auto'}`}
 								onClick={onClose}
 								aria-label="Close"
 							>

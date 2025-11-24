@@ -81,8 +81,6 @@ export const StudentRegistrationCard: React.FC = () => {
   const subtitleArPreview = watch('subtitle_ar') || cardData?.subtitle_ar || t('student_registration_card.preview_subtitle_ar');
   const subtitleEnPreview = watch('subtitle_en') || cardData?.subtitle_en || t('student_registration_card.preview_subtitle_en');
 
-  const cardStatusLabel = cardData?.status ?? 'active';
-
   const previewCards = useMemo<PreviewCardConfig[]>(
     () => [
       {
